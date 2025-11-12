@@ -1,0 +1,35 @@
+# augments.yaml
+meta_version: "14.23"
+base_scores:
+  Blue Battery:
+    tier: S
+    score: 88
+    tags: [AP, mana, scaling]
+  Jeweled Lotus:
+    tier: S-
+    score: 86
+    tags: [AP, crit, scaling]
+  First Aid Kit:
+    tier: B+
+    score: 78
+    tags: [healing, sustain]
+  Rich Get Richer:
+    tier: A
+    score: 84
+    tags: [econ, early]
+  Component Grab Bag:
+    tier: A
+    score: 80
+    tags: [items, early, flexible]
+  Scoped Weapons:
+    tier: B
+    score: 70
+    tags: [AD, backline]
+  Sunfire Board:
+    tier: A-
+    score: 82
+    tags: [HP, burn, early]
+  Last Stand:
+    tier: S
+    score: 90
+    tags: [comeback, late]
