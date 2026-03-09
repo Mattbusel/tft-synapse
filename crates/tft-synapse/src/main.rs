@@ -24,7 +24,7 @@ fn main() {
     };
     tracing_subscriber::fmt().with_max_level(level).init();
 
-    info!("TFT Synapse v0.2.0 starting");
+    info!("TFT Synapse v{} starting", env!("CARGO_PKG_VERSION"));
 
     let model_path = args.effective_model_path();
     info!("Model path: {:?}", model_path);

@@ -6,7 +6,7 @@
 //! - Timeout: HTTP request has a 3-second timeout to avoid blocking startup
 
 /// The version of this build.
-pub const CURRENT_VERSION: &str = "0.4.0";
+pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// GitHub Releases API endpoint for the latest release.
 pub const RELEASES_API: &str = "https://api.github.com/repos/Mattbusel/tft-synapse/releases/latest";

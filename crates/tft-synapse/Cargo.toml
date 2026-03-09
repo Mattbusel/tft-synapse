@@ -1,6 +1,6 @@
 [package]
 name = "tft-synapse"
-version = "0.2.0"
+version = "0.5.0"
 edition = "2021"
 description = "TFT Synapse - AI-powered TFT advisor and auto-player platform"
 
