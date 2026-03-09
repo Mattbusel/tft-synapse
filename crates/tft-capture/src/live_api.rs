@@ -43,6 +43,64 @@ impl RiotLiveApiReader {
         Ok(json)
     }
 
+    /// Convert game time (seconds since match start) to (stage, round).
+    ///
+    /// Approximate TFT round timings. Each entry is (cumulative_seconds, stage, round).
+    /// Rounds are ~35s combat + ~30s planning. Carousels are ~30s. Stage 1 is shorter.
+    fn game_time_to_stage_round(secs: f64) -> (u8, u8) {
+        // (start_time_secs, stage, round)
+        const SCHEDULE: &[(f64, u8, u8)] = &[
+            (0.0, 1, 1),
+            (30.0, 1, 2),
+            (65.0, 1, 3),
+            (100.0, 1, 4),
+            (140.0, 2, 1), // carousel
+            (175.0, 2, 2),
+            (220.0, 2, 3),
+            (265.0, 2, 4),
+            (310.0, 2, 5),
+            (355.0, 2, 6),
+            (400.0, 2, 7),
+            (445.0, 3, 1), // carousel
+            (480.0, 3, 2),
+            (530.0, 3, 3),
+            (580.0, 3, 4),
+            (630.0, 3, 5),
+            (680.0, 3, 6),
+            (730.0, 3, 7),
+            (780.0, 4, 1), // carousel
+            (815.0, 4, 2),
+            (870.0, 4, 3),
+            (925.0, 4, 4),
+            (980.0, 4, 5),
+            (1035.0, 4, 6),
+            (1090.0, 4, 7),
+            (1145.0, 5, 1), // carousel
+            (1180.0, 5, 2),
+            (1240.0, 5, 3),
+            (1300.0, 5, 4),
+            (1360.0, 5, 5),
+            (1420.0, 6, 1),
+            (1455.0, 6, 2),
+            (1520.0, 6, 3),
+            (1585.0, 6, 4),
+            (1650.0, 6, 5),
+            (1715.0, 7, 1),
+        ];
+
+        let mut stage = 1u8;
+        let mut round = 1u8;
+        for &(t, s, r) in SCHEDULE {
+            if secs >= t {
+                stage = s;
+                round = r;
+            } else {
+                break;
+            }
+        }
+        (stage, round)
+    }
+
     fn parse_game_state(raw: &serde_json::Value) -> Result<GameState, TftError> {
         // Parse active player data
         let active = raw
@@ -56,17 +114,31 @@ impl RiotLiveApiReader {
 
         let level = active.get("level").and_then(|v| v.as_u64()).unwrap_or(1) as u8;
 
-        // Parse game stats
-        let game_data = raw.get("gameData");
-        let round_str = game_data
+        // Try to read HP from several known field paths the API may expose
+        let hp = active
+            .get("championStats")
+            .and_then(|s| s.get("currentHealth"))
+            .and_then(|v| v.as_f64())
+            .or_else(|| active.get("health").and_then(|v| v.as_f64()))
+            .map(|h| h.round() as u8)
+            .unwrap_or(100);
+
+        // XP toward next level
+        let xp = active
+            .get("currentXp")
+            .or_else(|| active.get("experience"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0) as u8;
+
+        // Game time -> stage/round
+        let game_time = raw
+            .get("gameData")
             .and_then(|g| g.get("gameTime"))
             .and_then(|t| t.as_f64())
             .unwrap_or(0.0);
+        let (stage, round) = Self::game_time_to_stage_round(game_time);
 
-        // Convert game time to approximate stage/round
-        let stage = ((round_str / 120.0) as u8).min(7) + 1;
-
-        // Parse allPlayers for opponent snapshots (limited data available from this endpoint)
+        // Parse allPlayers for opponent snapshots (limited data from this endpoint)
         let opponents: Vec<OpponentSnapshot> = raw
             .get("allPlayers")
             .and_then(|p| p.as_array())
@@ -75,10 +147,17 @@ impl RiotLiveApiReader {
                     .iter()
                     .filter_map(|p| {
                         let name = p.get("summonerName")?.as_str()?.to_string();
+                        let opp_hp = p
+                            .get("scores")
+                            .and_then(|s| s.get("wardScore"))
+                            .and_then(|v| v.as_f64())
+                            .map(|h| h as u8)
+                            .unwrap_or(100);
+                        let opp_level = p.get("level").and_then(|v| v.as_u64()).unwrap_or(1) as u8;
                         Some(OpponentSnapshot {
                             player_name: name,
-                            hp: 100,
-                            level: 1,
+                            hp: opp_hp,
+                            level: opp_level,
                             board_champions: vec![],
                             active_traits: vec![],
                         })
@@ -88,7 +167,7 @@ impl RiotLiveApiReader {
             .unwrap_or_default();
 
         Ok(GameState {
-            round: RoundInfo { stage, round: 1 },
+            round: RoundInfo { stage, round },
             board: vec![],
             bench: vec![None; 9],
             shop: (0..5)
@@ -100,9 +179,9 @@ impl RiotLiveApiReader {
                 })
                 .collect(),
             gold: current_gold,
-            hp: 100,
+            hp,
             level,
-            xp: 0,
+            xp,
             streak: 0,
             current_augments: vec![],
             augment_choices: None,
@@ -203,6 +282,69 @@ mod tests {
         let s = state.expect("parse failed in test");
         assert_eq!(s.gold, 45);
         assert_eq!(s.level, 7);
+        // 300s is inside stage 2 (starts ~140s), round 5 (starts ~310s) or round 4
+        assert_eq!(s.round.stage, 2);
+    }
+
+    #[test]
+    fn test_game_time_to_stage_round_early_game() {
+        let (stage, round) = RiotLiveApiReader::game_time_to_stage_round(0.0);
+        assert_eq!(stage, 1);
+        assert_eq!(round, 1);
+    }
+
+    #[test]
+    fn test_game_time_to_stage_round_stage2() {
+        // 200s should be in stage 2
+        let (stage, _) = RiotLiveApiReader::game_time_to_stage_round(200.0);
+        assert_eq!(stage, 2);
+    }
+
+    #[test]
+    fn test_game_time_to_stage_round_stage3() {
+        // 500s should be in stage 3
+        let (stage, _) = RiotLiveApiReader::game_time_to_stage_round(500.0);
+        assert_eq!(stage, 3);
+    }
+
+    #[test]
+    fn test_game_time_to_stage_round_stage4() {
+        let (stage, _) = RiotLiveApiReader::game_time_to_stage_round(850.0);
+        assert_eq!(stage, 4);
+    }
+
+    #[test]
+    fn test_game_time_stage_round_monotonic() {
+        // Stage/round should never go backwards as time increases
+        let mut prev_stage = 1u8;
+        let mut prev_round = 1u8;
+        for t in (0..1800).step_by(10) {
+            let (s, r) = RiotLiveApiReader::game_time_to_stage_round(t as f64);
+            assert!(
+                (s, r) >= (prev_stage, prev_round),
+                "non-monotonic at {}s: ({},{}) -> ({},{})",
+                t,
+                prev_stage,
+                prev_round,
+                s,
+                r
+            );
+            prev_stage = s;
+            prev_round = r;
+        }
+    }
+
+    #[test]
+    fn test_parse_game_state_hp_from_champion_stats() {
+        let raw = serde_json::json!({
+            "activePlayer": {
+                "currentGold": 10.0,
+                "level": 5,
+                "championStats": { "currentHealth": 72.0 }
+            }
+        });
+        let s = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert_eq!(s.hp, 72);
     }
 
     #[test]
