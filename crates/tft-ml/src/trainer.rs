@@ -58,7 +58,7 @@ impl ReplayBuffer {
 
 /// Apply a gradient update to a ShallowNet using SGD.
 pub fn apply_sgd_update(net: &mut ShallowNet, grads: &Gradients, lr: f32) {
-    fn update_layer(weights: &mut Vec<f32>, biases: &mut Vec<f32>, dw: &[f32], db: &[f32], lr: f32) {
+    fn update_layer(weights: &mut [f32], biases: &mut [f32], dw: &[f32], db: &[f32], lr: f32) {
         for (w, &g) in weights.iter_mut().zip(dw.iter()) {
             *w -= lr * g;
         }

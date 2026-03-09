@@ -6,7 +6,7 @@ use tft_types::TftError;
 fn relu(x: f32) -> f32 { x.max(0.0) }
 
 /// Apply softmax to a slice in-place.
-pub fn softmax(logits: &mut Vec<f32>) {
+pub fn softmax(logits: &mut [f32]) {
     let max = logits.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
     let sum: f32 = logits.iter().map(|&x| (x - max).exp()).sum();
     for x in logits.iter_mut() {
