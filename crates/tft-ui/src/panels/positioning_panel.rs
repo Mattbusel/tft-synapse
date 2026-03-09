@@ -1,20 +1,33 @@
+use crate::theme;
 use egui::Ui;
 use tft_advisor::{BoardLayout, PositionRole};
-use crate::theme;
 
 pub fn render(ui: &mut Ui, layout: &BoardLayout) {
     ui.heading("Positioning");
     if layout.positions.is_empty() {
-        ui.label(egui::RichText::new("No units on board").small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new("No units on board")
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
         return;
     }
     if let Some(ref carry) = layout.carry_champion {
-        ui.label(egui::RichText::new(format!("Main carry: {}", carry)).color(theme::SCORE_HIGH).small().strong());
+        ui.label(
+            egui::RichText::new(format!("Main carry: {}", carry))
+                .color(theme::SCORE_HIGH)
+                .small()
+                .strong(),
+        );
     }
-    ui.label(egui::RichText::new(format!(
-        "Frontline: {}  Backline: {}",
-        layout.frontline_count, layout.backline_count
-    )).small().color(theme::TEXT_SECONDARY));
+    ui.label(
+        egui::RichText::new(format!(
+            "Frontline: {}  Backline: {}",
+            layout.frontline_count, layout.backline_count
+        ))
+        .small()
+        .color(theme::TEXT_SECONDARY),
+    );
 
     if let Some(ref warn) = layout.layout_warning {
         ui.label(egui::RichText::new(warn).small().color(theme::SCORE_LOW));
@@ -28,8 +41,19 @@ pub fn render(ui: &mut Ui, layout: &BoardLayout) {
             PositionRole::Support => theme::ACCENT_BLUE,
         };
         ui.horizontal(|ui| {
-            ui.label(egui::RichText::new(&rec.champion_name).color(role_color).small());
-            ui.label(egui::RichText::new(format!("-> R{}C{}", rec.suggested_position.row, rec.suggested_position.col)).small().color(theme::TEXT_SECONDARY));
+            ui.label(
+                egui::RichText::new(&rec.champion_name)
+                    .color(role_color)
+                    .small(),
+            );
+            ui.label(
+                egui::RichText::new(format!(
+                    "-> R{}C{}",
+                    rec.suggested_position.row, rec.suggested_position.col
+                ))
+                .small()
+                .color(theme::TEXT_SECONDARY),
+            );
         });
     }
 }

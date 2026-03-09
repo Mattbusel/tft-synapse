@@ -1,10 +1,10 @@
 //! Save and load neural network weights as JSON.
 //! (Using JSON instead of safetensors to avoid extra dependencies.)
 
-use std::path::Path;
-use serde::{Deserialize, Serialize};
-use tft_types::TftError;
 use crate::model::{Linear, ShallowNet};
+use serde::{Deserialize, Serialize};
+use std::path::Path;
+use tft_types::TftError;
 
 #[derive(Serialize, Deserialize)]
 struct LinearState {
@@ -26,7 +26,12 @@ struct ModelState {
 
 impl From<&Linear> for LinearState {
     fn from(l: &Linear) -> Self {
-        Self { weights: l.weights.clone(), biases: l.biases.clone(), in_size: l.in_size, out_size: l.out_size }
+        Self {
+            weights: l.weights.clone(),
+            biases: l.biases.clone(),
+            in_size: l.in_size,
+            out_size: l.out_size,
+        }
     }
 }
 
@@ -50,7 +55,12 @@ pub fn save_model(net: &ShallowNet, games_trained: u32, path: &Path) -> Result<(
 pub fn load_model(path: &Path) -> Result<(ShallowNet, u32), TftError> {
     let json = std::fs::read_to_string(path)?;
     let state: ModelState = serde_json::from_str(&json)?;
-    let mut net = ShallowNet::new(state.input_dim, state.layer1.out_size, state.layer2.out_size, state.output_dim);
+    let mut net = ShallowNet::new(
+        state.input_dim,
+        state.layer1.out_size,
+        state.layer2.out_size,
+        state.output_dim,
+    );
     net.layer1.weights = state.layer1.weights;
     net.layer1.biases = state.layer1.biases;
     net.layer2.weights = state.layer2.weights;

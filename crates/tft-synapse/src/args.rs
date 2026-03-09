@@ -38,7 +38,9 @@ impl Args {
             let home = std::env::var("USERPROFILE")
                 .or_else(|_| std::env::var("HOME"))
                 .unwrap_or_else(|_| ".".to_string());
-            std::path::PathBuf::from(home).join(".tft-synapse").join("model.json")
+            std::path::PathBuf::from(home)
+                .join(".tft-synapse")
+                .join("model.json")
         } else {
             std::path::PathBuf::from(&self.model_path)
         }
@@ -61,7 +63,11 @@ mod tests {
         };
         let path = args.effective_model_path();
         let path_str = path.to_string_lossy();
-        assert!(path_str.contains(".tft-synapse"), "expected .tft-synapse in path: {}", path_str);
+        assert!(
+            path_str.contains(".tft-synapse"),
+            "expected .tft-synapse in path: {}",
+            path_str
+        );
     }
 
     #[test]

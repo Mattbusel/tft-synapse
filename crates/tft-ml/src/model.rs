@@ -3,7 +3,9 @@
 use tft_types::TftError;
 
 /// Activation function: ReLU
-fn relu(x: f32) -> f32 { x.max(0.0) }
+fn relu(x: f32) -> f32 {
+    x.max(0.0)
+}
 
 /// Apply softmax to a slice in-place.
 pub fn softmax(logits: &mut [f32]) {
@@ -30,20 +32,31 @@ impl Linear {
         let weights: Vec<f32> = (0..in_size * out_size)
             .map(|i| {
                 // Deterministic pseudo-random via simple LCG for reproducibility
-                let x = ((i as u64).wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407)) as f32;
+                let x = ((i as u64)
+                    .wrapping_mul(6364136223846793005)
+                    .wrapping_add(1442695040888963407)) as f32;
                 let norm = (x / u64::MAX as f32) * 2.0 - 1.0;
                 norm * scale
             })
             .collect();
         let biases = vec![0.0; out_size];
-        Self { weights, biases, in_size, out_size }
+        Self {
+            weights,
+            biases,
+            in_size,
+            out_size,
+        }
     }
 
     pub fn forward(&self, input: &[f32]) -> Vec<f32> {
         let mut output = self.biases.clone();
         for (i, b) in output.iter_mut().enumerate() {
             let row = &self.weights[i * self.in_size..(i + 1) * self.in_size];
-            *b += row.iter().zip(input.iter()).map(|(&w, &x)| w * x).sum::<f32>();
+            *b += row
+                .iter()
+                .zip(input.iter())
+                .map(|(&w, &x)| w * x)
+                .sum::<f32>();
         }
         output
     }
@@ -70,7 +83,8 @@ impl ShallowNet {
         if input.len() != self.layer1.in_size {
             return Err(TftError::Model(format!(
                 "input dim mismatch: expected {}, got {}",
-                self.layer1.in_size, input.len()
+                self.layer1.in_size,
+                input.len()
             )));
         }
         let h1: Vec<f32> = self.layer1.forward(input).into_iter().map(relu).collect();
@@ -87,7 +101,9 @@ impl ShallowNet {
         reward: f32,
     ) -> Result<Gradients, TftError> {
         if input.len() != self.layer1.in_size {
-            return Err(TftError::Model("input dim mismatch in backward".to_string()));
+            return Err(TftError::Model(
+                "input dim mismatch in backward".to_string(),
+            ));
         }
 
         // Forward pass, saving activations
@@ -160,7 +176,14 @@ impl ShallowNet {
             }
         }
 
-        Ok(Gradients { d_w1, db1, d_w2, db2, d_wo, dbo })
+        Ok(Gradients {
+            d_w1,
+            db1,
+            d_w2,
+            db2,
+            d_wo,
+            dbo,
+        })
     }
 }
 
@@ -182,11 +205,17 @@ mod tests {
     }
 
     #[test]
-    fn test_relu_positive() { assert_eq!(relu(1.5), 1.5); }
+    fn test_relu_positive() {
+        assert_eq!(relu(1.5), 1.5);
+    }
     #[test]
-    fn test_relu_negative() { assert_eq!(relu(-1.0), 0.0); }
+    fn test_relu_negative() {
+        assert_eq!(relu(-1.0), 0.0);
+    }
     #[test]
-    fn test_relu_zero() { assert_eq!(relu(0.0), 0.0); }
+    fn test_relu_zero() {
+        assert_eq!(relu(0.0), 0.0);
+    }
 
     #[test]
     fn test_softmax_sums_to_one() {
@@ -200,7 +229,9 @@ mod tests {
     fn test_softmax_all_positive() {
         let mut v = vec![0.5, -1.0, 2.0];
         softmax(&mut v);
-        for &p in &v { assert!(p > 0.0); }
+        for &p in &v {
+            assert!(p > 0.0);
+        }
     }
 
     #[test]
@@ -233,7 +264,9 @@ mod tests {
         let n_out = 5;
         let net = ShallowNet::new(n_in, 16, 8, n_out);
         let input = vec![0.5f32; n_in];
-        let grads = net.backward(&input, 2, 0.8).expect("backward failed in test");
+        let grads = net
+            .backward(&input, 2, 0.8)
+            .expect("backward failed in test");
         assert_eq!(grads.d_w1.len(), 16 * n_in);
         assert_eq!(grads.db1.len(), 16);
         assert_eq!(grads.d_w2.len(), 8 * 16);

@@ -1,15 +1,17 @@
 //! Main egui app: wires UI together, manages the background polling loop.
 
-use std::path::PathBuf;
-use std::sync::mpsc;
-use egui::Context;
-use tft_types::GameState;
-use tft_advisor::Advisor;
-use crate::panels::{augment_panel, carry_panel, economy_panel, item_panel, lobby_panel,
-                    pool_panel, positioning_panel, review_panel, round_panel, stats_panel, status_bar};
+use crate::overlay;
+use crate::panels::{
+    augment_panel, carry_panel, economy_panel, item_panel, lobby_panel, pool_panel,
+    positioning_panel, review_panel, round_panel, stats_panel, status_bar,
+};
 use crate::state::{ConnectionStatus, UiState};
 use crate::theme;
-use crate::overlay;
+use egui::Context;
+use std::path::PathBuf;
+use std::sync::mpsc;
+use tft_advisor::Advisor;
+use tft_types::GameState;
 use tracing::warn;
 
 pub enum AppMessage {
@@ -17,7 +19,10 @@ pub enum AppMessage {
     Error(String),
     Disconnected,
     /// A newer version is available for download.
-    UpdateAvailable { version: String, url: String },
+    UpdateAvailable {
+        version: String,
+        url: String,
+    },
 }
 
 pub struct TftSynapseApp {
@@ -95,8 +100,11 @@ impl TftSynapseApp {
                     &stats_path,
                 ) {
                     Ok(()) => {
-                        self.ui_state.last_info =
-                            Some(format!("Exported {} games to {}", n, history_path.display()));
+                        self.ui_state.last_info = Some(format!(
+                            "Exported {} games to {}",
+                            n,
+                            history_path.display()
+                        ));
                         self.ui_state.last_error = None;
                     }
                     Err(e) => {
@@ -163,7 +171,9 @@ impl eframe::App for TftSynapseApp {
                 ui.horizontal(|ui| {
                     ui.label(
                         egui::RichText::new(format!("Update available: v{}", ver))
-                            .color(theme::SCORE_HIGH).strong().small()
+                            .color(theme::SCORE_HIGH)
+                            .strong()
+                            .small(),
                     );
                     ui.hyperlink_to("Download", url);
                 });
@@ -174,30 +184,46 @@ impl eframe::App for TftSynapseApp {
 
             if let Some(ref full) = self.ui_state.full_recommendation {
                 ui.add_space(4.0);
-                egui::CollapsingHeader::new("Economy").default_open(true).show(ui, |ui| {
-                    economy_panel::render(ui, &full.economy);
-                });
-                egui::CollapsingHeader::new("Carry Targets").default_open(true).show(ui, |ui| {
-                    carry_panel::render(ui, &full.carries);
-                });
-                egui::CollapsingHeader::new("Stage Awareness").default_open(true).show(ui, |ui| {
-                    round_panel::render(ui, &full.stage_awareness);
-                });
-                egui::CollapsingHeader::new("Pool Tracker").default_open(false).show(ui, |ui| {
-                    pool_panel::render(ui, &full.pool);
-                });
-                egui::CollapsingHeader::new("Positioning").default_open(false).show(ui, |ui| {
-                    positioning_panel::render(ui, &full.positions);
-                });
-                egui::CollapsingHeader::new("Items").default_open(false).show(ui, |ui| {
-                    item_panel::render(ui, &full.items);
-                });
-                egui::CollapsingHeader::new("Lobby").default_open(false).show(ui, |ui| {
-                    lobby_panel::render(ui, &full.lobby);
-                });
-                egui::CollapsingHeader::new("Game Review").default_open(false).show(ui, |ui| {
-                    review_panel::render(ui, &full.review);
-                });
+                egui::CollapsingHeader::new("Economy")
+                    .default_open(true)
+                    .show(ui, |ui| {
+                        economy_panel::render(ui, &full.economy);
+                    });
+                egui::CollapsingHeader::new("Carry Targets")
+                    .default_open(true)
+                    .show(ui, |ui| {
+                        carry_panel::render(ui, &full.carries);
+                    });
+                egui::CollapsingHeader::new("Stage Awareness")
+                    .default_open(true)
+                    .show(ui, |ui| {
+                        round_panel::render(ui, &full.stage_awareness);
+                    });
+                egui::CollapsingHeader::new("Pool Tracker")
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        pool_panel::render(ui, &full.pool);
+                    });
+                egui::CollapsingHeader::new("Positioning")
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        positioning_panel::render(ui, &full.positions);
+                    });
+                egui::CollapsingHeader::new("Items")
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        item_panel::render(ui, &full.items);
+                    });
+                egui::CollapsingHeader::new("Lobby")
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        lobby_panel::render(ui, &full.lobby);
+                    });
+                egui::CollapsingHeader::new("Game Review")
+                    .default_open(false)
+                    .show(ui, |ui| {
+                        review_panel::render(ui, &full.review);
+                    });
             }
 
             if let Some(ref info) = self.ui_state.last_info {
@@ -234,7 +260,10 @@ impl eframe::App for TftSynapseApp {
                     }
 
                     let mut click_through = self.ui_state.overlay_config.click_through;
-                    if ui.checkbox(&mut click_through, "Click-through (F9)").changed() {
+                    if ui
+                        .checkbox(&mut click_through, "Click-through (F9)")
+                        .changed()
+                    {
                         self.ui_state.toggle_click_through();
                     }
 

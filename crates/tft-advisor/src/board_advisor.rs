@@ -13,8 +13,8 @@
 //! - Item placement recommendations
 //! - Shop buy / reroll decisions (see shop_advisor)
 
-use tft_types::{GameState, TftError};
 use tft_data::Catalog;
+use tft_types::{GameState, TftError};
 
 /// Snapshot of one trait's activation status on the current board.
 #[derive(Debug, Clone)]
@@ -88,11 +88,7 @@ impl BoardAdvisor {
             .filter_map(|(name, &count)| {
                 let idx = *catalog.trait_by_name.get(name.as_str())?;
                 let raw = catalog.traits.get(idx)?;
-                let next_bp = raw
-                    .breakpoints
-                    .iter()
-                    .copied()
-                    .find(|&bp| bp > count);
+                let next_bp = raw.breakpoints.iter().copied().find(|&bp| bp > count);
                 let units_needed = next_bp.map_or(0, |bp| bp.saturating_sub(count));
                 Some(TraitStatus {
                     trait_name: name.clone(),
@@ -120,10 +116,9 @@ impl BoardAdvisor {
             .filter(|def| !board_ids.contains(&def.id))
             .filter(|def| {
                 def.traits.iter().any(|t| {
-                    trait_statuses.iter().any(|ts| {
-                        ts.trait_name == *t
-                            && ts.units_needed == 1
-                    })
+                    trait_statuses
+                        .iter()
+                        .any(|ts| ts.trait_name == *t && ts.units_needed == 1)
                 })
             })
             .map(|def| def.name.clone())
@@ -155,8 +150,13 @@ impl BoardAdvisor {
             .map(|(name, _)| name.clone())
             .collect();
 
-        let overall_strength =
-            Self::board_coherence_score(&trait_counts.iter().map(|(k, &v)| (k.clone(), v)).collect::<Vec<_>>(), catalog);
+        let overall_strength = Self::board_coherence_score(
+            &trait_counts
+                .iter()
+                .map(|(k, &v)| (k.clone(), v))
+                .collect::<Vec<_>>(),
+            catalog,
+        );
 
         Ok(BoardRecommendation {
             trait_statuses,
@@ -171,10 +171,7 @@ impl BoardAdvisor {
     /// that are at or beyond their first breakpoint.
     ///
     /// Returns a value in [0.0, 1.0].  An empty board returns 0.0.
-    pub(crate) fn board_coherence_score(
-        traits: &[(String, u8)],
-        catalog: &Catalog,
-    ) -> f32 {
+    pub(crate) fn board_coherence_score(traits: &[(String, u8)], catalog: &Catalog) -> f32 {
         if traits.is_empty() {
             return 0.0;
         }
@@ -242,9 +239,12 @@ mod tests {
             round: RoundInfo { stage: 2, round: 1 },
             board: vec![],
             bench: vec![None; 9],
-            shop: vec![
-                ShopSlot { champion_id: None, cost: 0, locked: false, sold: false },
-            ],
+            shop: vec![ShopSlot {
+                champion_id: None,
+                cost: 0,
+                locked: false,
+                sold: false,
+            }],
             gold: 30,
             hp: 80,
             level: 5,
@@ -279,7 +279,9 @@ mod tests {
     fn test_analyze_board_empty_board_no_traits() {
         let advisor = BoardAdvisor::new();
         let state = base_state();
-        let rec = advisor.analyze_board(&state, catalog()).expect("failed in test");
+        let rec = advisor
+            .analyze_board(&state, catalog())
+            .expect("failed in test");
         assert!(rec.trait_statuses.is_empty());
         assert!(rec.strongest_synergy.is_none());
     }
@@ -288,7 +290,9 @@ mod tests {
     fn test_analyze_board_empty_board_coherence_zero() {
         let advisor = BoardAdvisor::new();
         let state = base_state();
-        let rec = advisor.analyze_board(&state, catalog()).expect("failed in test");
+        let rec = advisor
+            .analyze_board(&state, catalog())
+            .expect("failed in test");
         assert_eq!(rec.overall_strength, 0.0);
     }
 
@@ -348,8 +352,12 @@ mod tests {
         let rec = advisor.analyze_board(&state, cat).expect("failed in test");
         for ts in &rec.trait_statuses {
             if let Some(bp) = ts.next_breakpoint {
-                assert_eq!(ts.units_needed, bp - ts.current_count,
-                    "units_needed inconsistent for trait {}", ts.trait_name);
+                assert_eq!(
+                    ts.units_needed,
+                    bp - ts.current_count,
+                    "units_needed inconsistent for trait {}",
+                    ts.trait_name
+                );
             } else {
                 assert_eq!(ts.units_needed, 0);
             }
@@ -368,14 +376,13 @@ mod tests {
     fn test_coherence_score_bounds() {
         let cat = catalog();
         // Use all known trait names with count=1
-        let traits: Vec<(String, u8)> = cat
-            .traits
-            .iter()
-            .map(|t| (t.name.clone(), 1u8))
-            .collect();
+        let traits: Vec<(String, u8)> = cat.traits.iter().map(|t| (t.name.clone(), 1u8)).collect();
         let score = BoardAdvisor::board_coherence_score(&traits, cat);
-        assert!((0.0..=1.0).contains(&score),
-            "coherence score out of bounds: {}", score);
+        assert!(
+            (0.0..=1.0).contains(&score),
+            "coherence score out of bounds: {}",
+            score
+        );
     }
 
     #[test]
@@ -416,7 +423,10 @@ mod tests {
         let mut state = base_state();
         state.board = vec![board_slot(0), board_slot(1)];
         let rec = advisor.analyze_board(&state, cat).expect("failed in test");
-        assert!((0.0..=1.0).contains(&rec.overall_strength),
-            "overall_strength out of range: {}", rec.overall_strength);
+        assert!(
+            (0.0..=1.0).contains(&rec.overall_strength),
+            "overall_strength out of range: {}",
+            rec.overall_strength
+        );
     }
 }

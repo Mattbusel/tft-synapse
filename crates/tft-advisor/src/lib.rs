@@ -26,7 +26,9 @@ pub use item_advisor::{ItemAdvisor, ItemRecommendation};
 pub use metrics::AdvisorMetrics;
 pub use opponent_tracker::{LobbyAnalysis, OpponentAnalysis, OpponentTracker, ThreatLevel};
 pub use pool_tracker::{PoolEntry, PoolStatus, PoolTracker};
-pub use positioning_advisor::{BoardLayout, HexPosition, PositionRecommendation, PositionRole, PositioningAdvisor};
+pub use positioning_advisor::{
+    BoardLayout, HexPosition, PositionRecommendation, PositionRole, PositioningAdvisor,
+};
 pub use round_timer::{EventType, RoundTimer, StageAwareness, UpcomingEvent};
 pub use session::{AugmentDecision, GameSession, ReviewEntry};
 pub use shop_advisor::{RerollRecommendation, ShopAdvisor, ShopRecommendation};

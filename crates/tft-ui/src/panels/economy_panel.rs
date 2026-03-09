@@ -1,6 +1,6 @@
-use egui::Ui;
-use tft_advisor::{EconomyAdvice, EconomyAction, StreakType};
 use crate::theme;
+use egui::Ui;
+use tft_advisor::{EconomyAction, EconomyAdvice, StreakType};
 
 pub fn render(ui: &mut Ui, advice: &EconomyAdvice) {
     ui.heading("Economy");
@@ -17,15 +17,27 @@ pub fn render(ui: &mut Ui, advice: &EconomyAdvice) {
         EconomyAction::Roll => theme::SCORE_HIGH,
         EconomyAction::MaintainStreak => theme::SCORE_HIGH,
     };
-    ui.label(egui::RichText::new(action_label).color(action_color).strong());
-    ui.label(egui::RichText::new(&advice.reason).small().color(theme::TEXT_SECONDARY));
+    ui.label(
+        egui::RichText::new(action_label)
+            .color(action_color)
+            .strong(),
+    );
+    ui.label(
+        egui::RichText::new(&advice.reason)
+            .small()
+            .color(theme::TEXT_SECONDARY),
+    );
 
     if let Some(ref streak) = advice.streak_type {
         let streak_label = match streak {
             StreakType::Win => "Win streak active",
             StreakType::Loss => "Loss streak active",
         };
-        ui.label(egui::RichText::new(streak_label).small().color(theme::SCORE_MID));
+        ui.label(
+            egui::RichText::new(streak_label)
+                .small()
+                .color(theme::SCORE_MID),
+        );
     }
 
     if advice.gold_to_interest > 0 {
@@ -43,7 +55,7 @@ pub fn render(ui: &mut Ui, advice: &EconomyAdvice) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_advisor::{EconomyAdvice, EconomyAction};
+    use tft_advisor::{EconomyAction, EconomyAdvice};
 
     #[test]
     fn test_economy_advice_save_action() {

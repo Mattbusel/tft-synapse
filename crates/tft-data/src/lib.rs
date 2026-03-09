@@ -4,7 +4,7 @@
 //! Use `Catalog::global()` for a lazily-initialized static instance.
 
 pub mod catalog;
-pub mod loader;
 pub mod embed;
+pub mod loader;
 
 pub use catalog::Catalog;

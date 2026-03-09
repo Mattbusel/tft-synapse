@@ -15,8 +15,8 @@
 //! - Item recommendations
 
 use std::collections::HashMap;
-use tft_types::{ChampionId, GameState, StarLevel, TftError};
 use tft_data::Catalog;
+use tft_types::{ChampionId, GameState, StarLevel, TftError};
 
 /// A single carry candidate with scoring information.
 #[derive(Debug, Clone)]
@@ -134,7 +134,11 @@ impl CarryAdvisor {
             .collect::<Result<Vec<_>, TftError>>()?;
 
         // Step 3: sort descending by score, take top 3
-        candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        candidates.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         candidates.truncate(3);
 
         Ok(candidates)
@@ -207,11 +211,20 @@ mod tests {
     }
 
     fn board_slot(id: u8, star: StarLevel) -> ChampionSlot {
-        ChampionSlot { champion_id: ChampionId(id), star_level: star, items: vec![] }
+        ChampionSlot {
+            champion_id: ChampionId(id),
+            star_level: star,
+            items: vec![],
+        }
     }
 
     fn shop_slot(id: u8, cost: u8) -> ShopSlot {
-        ShopSlot { champion_id: Some(ChampionId(id)), cost, locked: false, sold: false }
+        ShopSlot {
+            champion_id: Some(ChampionId(id)),
+            cost,
+            locked: false,
+            sold: false,
+        }
     }
 
     // ── empty state ───────────────────────────────────────────────────────────
@@ -219,7 +232,9 @@ mod tests {
     #[test]
     fn test_identify_carries_empty_state_returns_empty() {
         let state = base_state();
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert!(result.is_empty());
     }
 
@@ -229,7 +244,9 @@ mod tests {
     fn test_copies_counted_from_board() {
         let mut state = base_state();
         state.board = vec![board_slot(0, StarLevel::One), board_slot(0, StarLevel::One)];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert_eq!(result[0].copies_held, 2);
     }
 
@@ -241,7 +258,9 @@ mod tests {
             Some(board_slot(0, StarLevel::One)),
             None,
         ];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert_eq!(result[0].copies_held, 2);
     }
 
@@ -249,17 +268,24 @@ mod tests {
     fn test_copies_counted_from_shop() {
         let mut state = base_state();
         state.shop = vec![shop_slot(0, 1), shop_slot(0, 1)];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert_eq!(result[0].copies_held, 2);
     }
 
     #[test]
     fn test_sold_shop_slots_excluded() {
         let mut state = base_state();
-        state.shop = vec![
-            ShopSlot { champion_id: Some(ChampionId(0)), cost: 1, locked: false, sold: true },
-        ];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        state.shop = vec![ShopSlot {
+            champion_id: Some(ChampionId(0)),
+            cost: 1,
+            locked: false,
+            sold: true,
+        }];
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert!(result.is_empty(), "sold slots should be excluded");
     }
 
@@ -269,7 +295,9 @@ mod tests {
     fn test_copies_needed_correct() {
         let mut state = base_state();
         state.board = vec![board_slot(0, StarLevel::One); 3];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert_eq!(result[0].copies_needed, 6); // 9 - 3
     }
 
@@ -277,7 +305,9 @@ mod tests {
     fn test_copies_needed_zero_when_full() {
         let mut state = base_state();
         state.board = vec![board_slot(0, StarLevel::One); 9];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert_eq!(result[0].copies_needed, 0);
     }
 
@@ -291,10 +321,17 @@ mod tests {
         let mut state_two = base_state();
         state_two.board = vec![board_slot(0, StarLevel::Two)];
 
-        let res_one = advisor().identify_carries(&state_one, catalog()).expect("failed in test");
-        let res_two = advisor().identify_carries(&state_two, catalog()).expect("failed in test");
+        let res_one = advisor()
+            .identify_carries(&state_one, catalog())
+            .expect("failed in test");
+        let res_two = advisor()
+            .identify_carries(&state_two, catalog())
+            .expect("failed in test");
 
-        assert!(res_two[0].score > res_one[0].score, "2-star should score higher");
+        assert!(
+            res_two[0].score > res_one[0].score,
+            "2-star should score higher"
+        );
     }
 
     // ── sorting & top-3 cap ───────────────────────────────────────────────────
@@ -309,7 +346,9 @@ mod tests {
             board_slot(0, StarLevel::One),
             board_slot(1, StarLevel::One),
         ];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         for w in result.windows(2) {
             assert!(w[0].score >= w[1].score, "results not sorted descending");
         }
@@ -320,7 +359,9 @@ mod tests {
         let mut state = base_state();
         // Five distinct champions on board
         state.board = (0u8..5).map(|i| board_slot(i, StarLevel::One)).collect();
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert!(result.len() <= 3);
     }
 
@@ -341,9 +382,15 @@ mod tests {
     fn test_reason_never_empty() {
         let mut state = base_state();
         state.board = vec![board_slot(0, StarLevel::One)];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         for c in &result {
-            assert!(!c.reason.is_empty(), "reason should not be empty for {:?}", c.champion_id);
+            assert!(
+                !c.reason.is_empty(),
+                "reason should not be empty for {:?}",
+                c.champion_id
+            );
         }
     }
 
@@ -353,7 +400,9 @@ mod tests {
     fn test_champion_name_populated() {
         let mut state = base_state();
         state.board = vec![board_slot(0, StarLevel::One)];
-        let result = advisor().identify_carries(&state, catalog()).expect("failed in test");
+        let result = advisor()
+            .identify_carries(&state, catalog())
+            .expect("failed in test");
         assert!(!result[0].champion_name.is_empty());
     }
 

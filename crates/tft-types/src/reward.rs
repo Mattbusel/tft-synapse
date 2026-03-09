@@ -49,7 +49,12 @@ mod tests {
     fn test_placement_reward_monotone_decreasing() {
         let rewards: Vec<f32> = (1u8..=8).map(|i| Placement(i).to_reward()).collect();
         for w in rewards.windows(2) {
-            assert!(w[0] >= w[1], "rewards should be non-increasing: {} < {}", w[0], w[1]);
+            assert!(
+                w[0] >= w[1],
+                "rewards should be non-increasing: {} < {}",
+                w[0],
+                w[1]
+            );
         }
     }
 
@@ -57,7 +62,12 @@ mod tests {
     fn test_placement_reward_bounds() {
         for i in 1u8..=8 {
             let r = Placement(i).to_reward();
-            assert!(r >= 0.0 && r <= 1.0, "reward {} out of bounds for placement {}", r, i);
+            assert!(
+                r >= 0.0 && r <= 1.0,
+                "reward {} out of bounds for placement {}",
+                r,
+                i
+            );
         }
     }
 
@@ -71,15 +81,24 @@ mod tests {
 
     #[test]
     fn test_placement_top_four() {
-        for i in 1u8..=4 { assert!(Placement(i).is_top_four()); }
-        for i in 5u8..=8 { assert!(!Placement(i).is_top_four()); }
+        for i in 1u8..=4 {
+            assert!(Placement(i).is_top_four());
+        }
+        for i in 5u8..=8 {
+            assert!(!Placement(i).is_top_four());
+        }
     }
 
     #[test]
     fn test_state_transition_serde() {
-        let t = StateTransition { features: vec![1.0, 2.0, 3.0], augment_chosen: 5, placement: Some(Placement(3)) };
+        let t = StateTransition {
+            features: vec![1.0, 2.0, 3.0],
+            augment_chosen: 5,
+            placement: Some(Placement(3)),
+        };
         let json = serde_json::to_string(&t).expect("serialize failed in test");
-        let back: StateTransition = serde_json::from_str(&json).expect("deserialize failed in test");
+        let back: StateTransition =
+            serde_json::from_str(&json).expect("deserialize failed in test");
         assert_eq!(t.augment_chosen, back.augment_chosen);
         assert_eq!(t.features, back.features);
     }

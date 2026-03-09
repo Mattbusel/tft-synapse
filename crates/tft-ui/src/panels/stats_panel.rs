@@ -1,9 +1,9 @@
 //! Stats panel: games played, top-4 rate, model info.
 
-use egui::{Ui, RichText};
-use tft_advisor::AdvisorMetrics;
-use crate::theme;
 use crate::state::ConnectionStatus;
+use crate::theme;
+use egui::{RichText, Ui};
+use tft_advisor::AdvisorMetrics;
 
 /// Render the stats panel.
 ///
@@ -30,21 +30,37 @@ pub fn render(
     });
 
     ui.add_space(4.0);
-    ui.label(RichText::new(format!("Games played: {}", metrics.games_played)).color(theme::TEXT_PRIMARY));
-    ui.label(RichText::new(format!("Model trained on: {} games", games_trained)).color(theme::TEXT_PRIMARY));
+    ui.label(
+        RichText::new(format!("Games played: {}", metrics.games_played)).color(theme::TEXT_PRIMARY),
+    );
+    ui.label(
+        RichText::new(format!("Model trained on: {} games", games_trained))
+            .color(theme::TEXT_PRIMARY),
+    );
 
     if metrics.games_played > 0 {
         ui.add_space(4.0);
-        ui.label(RichText::new(format!("Avg placement: {:.1}", metrics.avg_placement())).color(theme::TEXT_PRIMARY));
         ui.label(
-            RichText::new(format!("Top-4 rate: {:.0}%", metrics.top_four_rate() * 100.0))
-                .color(if metrics.top_four_rate() >= 0.5 { theme::SCORE_HIGH } else { theme::SCORE_MID }),
+            RichText::new(format!("Avg placement: {:.1}", metrics.avg_placement()))
+                .color(theme::TEXT_PRIMARY),
+        );
+        ui.label(
+            RichText::new(format!(
+                "Top-4 rate: {:.0}%",
+                metrics.top_four_rate() * 100.0
+            ))
+            .color(if metrics.top_four_rate() >= 0.5 {
+                theme::SCORE_HIGH
+            } else {
+                theme::SCORE_MID
+            }),
         );
     }
 
     ui.add_space(8.0);
     ui.separator();
-    ui.button(RichText::new("Export CSV").color(theme::ACCENT_BLUE)).clicked()
+    ui.button(RichText::new("Export CSV").color(theme::ACCENT_BLUE))
+        .clicked()
 }
 
 #[cfg(test)]

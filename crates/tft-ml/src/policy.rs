@@ -1,14 +1,14 @@
 //! Public API: AugmentPolicy ties together the net, bandit, trainer, and persistence.
 
+use crate::bandit::ThompsonSampling;
+use crate::model::{softmax, ShallowNet};
+use crate::persistence::{load_model, save_model};
+use crate::trainer::{mini_batch_update, ReplayBuffer};
 use std::path::PathBuf;
-use tft_types::{AugmentId, GameState, Placement, StateTransition, TftError};
 use tft_data::Catalog;
 use tft_game_state::FeatureExtractor;
-use crate::model::{ShallowNet, softmax};
-use crate::bandit::ThompsonSampling;
-use crate::trainer::{ReplayBuffer, mini_batch_update};
-use crate::persistence::{save_model, load_model};
-use tracing::{info, debug};
+use tft_types::{AugmentId, GameState, Placement, StateTransition, TftError};
+use tracing::{debug, info};
 
 const HIDDEN1: usize = 64;
 const HIDDEN2: usize = 32;
@@ -33,7 +33,10 @@ impl AugmentPolicy {
         let input_dim = extractor.dim();
         let net = ShallowNet::new(input_dim, HIDDEN1, HIDDEN2, n_augments);
         let bandit = ThompsonSampling::new(n_augments);
-        info!("AugmentPolicy initialized: input_dim={}, n_augments={}", input_dim, n_augments);
+        info!(
+            "AugmentPolicy initialized: input_dim={}, n_augments={}",
+            input_dim, n_augments
+        );
         Ok(Self {
             net,
             bandit,
@@ -54,7 +57,10 @@ impl AugmentPolicy {
                 Ok((net, games)) => {
                     policy.net = net;
                     policy.games_trained = games;
-                    info!("Loaded model from {:?} ({} games trained)", model_path, games);
+                    info!(
+                        "Loaded model from {:?} ({} games trained)",
+                        model_path, games
+                    );
                 }
                 Err(e) => {
                     info!("Could not load model ({}), starting fresh", e);
@@ -75,13 +81,19 @@ impl AugmentPolicy {
         softmax(&mut logits);
 
         let seed = state.round.stage as u64 * 1000 + state.round.round as u64;
-        let mut scored: Vec<(AugmentId, f32)> = choices.iter().map(|&id| {
-            let idx = id.0 as usize;
-            let nn_score = logits.get(idx).copied().unwrap_or(0.0);
-            let bandit_score = self.bandit.sample_score(idx, seed + idx as u64).unwrap_or(0.5);
-            let combined = self.bandit.combined_score(nn_score, bandit_score);
-            (id, combined)
-        }).collect();
+        let mut scored: Vec<(AugmentId, f32)> = choices
+            .iter()
+            .map(|&id| {
+                let idx = id.0 as usize;
+                let nn_score = logits.get(idx).copied().unwrap_or(0.0);
+                let bandit_score = self
+                    .bandit
+                    .sample_score(idx, seed + idx as u64)
+                    .unwrap_or(0.5);
+                let combined = self.bandit.combined_score(nn_score, bandit_score);
+                (id, combined)
+            })
+            .collect();
 
         scored.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
@@ -95,10 +107,7 @@ impl AugmentPolicy {
     }
 
     /// Record game outcome and trigger online update.
-    pub fn record_game_outcome(
-        &mut self,
-        placement: Placement,
-    ) -> Result<(), TftError> {
+    pub fn record_game_outcome(&mut self, placement: Placement) -> Result<(), TftError> {
         let reward = placement.to_reward();
 
         for (features, chosen) in self.pending_transitions.drain(..) {
@@ -124,19 +133,26 @@ impl AugmentPolicy {
     /// Save model weights to disk.
     pub fn save(&self) -> Result<(), TftError> {
         save_model(&self.net, self.games_trained, &self.model_path)?;
-        info!("Model saved to {:?} ({} games)", self.model_path, self.games_trained);
+        info!(
+            "Model saved to {:?} ({} games)",
+            self.model_path, self.games_trained
+        );
         Ok(())
     }
 
-    pub fn games_trained(&self) -> u32 { self.games_trained }
-    pub fn n_augments(&self) -> usize { self.n_augments }
+    pub fn games_trained(&self) -> u32 {
+        self.games_trained
+    }
+    pub fn n_augments(&self) -> usize {
+        self.n_augments
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_types::{AugmentId, ChampionSlot, ChampionId, GameState, RoundInfo, StarLevel};
     use std::env::temp_dir;
+    use tft_types::{AugmentId, ChampionId, ChampionSlot, GameState, RoundInfo, StarLevel};
 
     fn make_policy() -> AugmentPolicy {
         let catalog = Catalog::from_embedded().expect("catalog init failed in test");
@@ -147,7 +163,11 @@ mod tests {
     fn make_state() -> GameState {
         GameState {
             round: RoundInfo { stage: 2, round: 1 },
-            board: vec![ChampionSlot { champion_id: ChampionId(0), star_level: StarLevel::One, items: vec![] }],
+            board: vec![ChampionSlot {
+                champion_id: ChampionId(0),
+                star_level: StarLevel::One,
+                items: vec![],
+            }],
             bench: vec![],
             shop: vec![],
             gold: 30,
@@ -172,7 +192,9 @@ mod tests {
         let mut policy = make_policy();
         let state = make_state();
         let choices = vec![AugmentId(0), AugmentId(1), AugmentId(2)];
-        let ranked = policy.rank_augments(&state, &choices).expect("rank failed in test");
+        let ranked = policy
+            .rank_augments(&state, &choices)
+            .expect("rank failed in test");
         assert_eq!(ranked.len(), 3);
     }
 
@@ -181,9 +203,15 @@ mod tests {
         let mut policy = make_policy();
         let state = make_state();
         let choices = vec![AugmentId(0), AugmentId(1), AugmentId(2)];
-        let ranked = policy.rank_augments(&state, &choices).expect("rank failed in test");
+        let ranked = policy
+            .rank_augments(&state, &choices)
+            .expect("rank failed in test");
         for (_, score) in &ranked {
-            assert!(*score >= 0.0 && *score <= 1.0, "score {} out of range", score);
+            assert!(
+                *score >= 0.0 && *score <= 1.0,
+                "score {} out of range",
+                score
+            );
         }
     }
 
@@ -192,7 +220,9 @@ mod tests {
         let mut policy = make_policy();
         let state = make_state();
         let choices = vec![AugmentId(0), AugmentId(1), AugmentId(2)];
-        let ranked = policy.rank_augments(&state, &choices).expect("rank failed in test");
+        let ranked = policy
+            .rank_augments(&state, &choices)
+            .expect("rank failed in test");
         for w in ranked.windows(2) {
             assert!(w[0].1 >= w[1].1, "rankings not sorted descending");
         }
@@ -203,8 +233,12 @@ mod tests {
         let mut policy = make_policy();
         let state = make_state();
         let choices = vec![AugmentId(0), AugmentId(1), AugmentId(2)];
-        policy.rank_augments(&state, &choices).expect("rank failed in test");
-        policy.record_game_outcome(Placement(3)).expect("record failed in test");
+        policy
+            .rank_augments(&state, &choices)
+            .expect("rank failed in test");
+        policy
+            .record_game_outcome(Placement(3))
+            .expect("record failed in test");
         assert_eq!(policy.games_trained(), 1);
     }
 
@@ -215,11 +249,16 @@ mod tests {
         let mut policy = AugmentPolicy::new(&catalog, path.clone()).expect("init failed in test");
         let state = make_state();
         let choices = vec![AugmentId(0)];
-        policy.rank_augments(&state, &choices).expect("rank failed in test");
-        policy.record_game_outcome(Placement(1)).expect("record failed in test");
+        policy
+            .rank_augments(&state, &choices)
+            .expect("rank failed in test");
+        policy
+            .record_game_outcome(Placement(1))
+            .expect("record failed in test");
         policy.save().expect("save failed in test");
 
-        let loaded = AugmentPolicy::load_or_init(&catalog, path.clone()).expect("load failed in test");
+        let loaded =
+            AugmentPolicy::load_or_init(&catalog, path.clone()).expect("load failed in test");
         assert_eq!(loaded.games_trained(), 1);
         let _ = std::fs::remove_file(&path);
     }
@@ -228,7 +267,9 @@ mod tests {
     fn test_rank_empty_choices_returns_empty() {
         let mut policy = make_policy();
         let state = make_state();
-        let ranked = policy.rank_augments(&state, &[]).expect("rank failed in test");
+        let ranked = policy
+            .rank_augments(&state, &[])
+            .expect("rank failed in test");
         assert_eq!(ranked.len(), 0);
     }
 }

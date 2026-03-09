@@ -15,9 +15,13 @@ pub const SCORE_LOW: Color32 = Color32::from_rgb(200, 80, 80);
 
 /// Get a color for a score value [0.0, 1.0].
 pub fn score_color(score: f32) -> Color32 {
-    if score >= 0.7 { SCORE_HIGH }
-    else if score >= 0.4 { SCORE_MID }
-    else { SCORE_LOW }
+    if score >= 0.7 {
+        SCORE_HIGH
+    } else if score >= 0.4 {
+        SCORE_MID
+    } else {
+        SCORE_LOW
+    }
 }
 
 #[cfg(test)]

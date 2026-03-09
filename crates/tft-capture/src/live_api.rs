@@ -1,9 +1,9 @@
 //! Riot Games Live Client Data API reader.
 //! Polls http://127.0.0.1:2999/liveclientdata/allgamedata every 500ms.
 
-use tft_types::{GameState, OpponentSnapshot, RoundInfo, ShopSlot, TftError};
 use crate::reader::{GameStateReader, ReaderMode};
 use std::sync::{Arc, Mutex};
+use tft_types::{GameState, OpponentSnapshot, RoundInfo, ShopSlot, TftError};
 use tracing::{debug, warn};
 
 const API_BASE: &str = "http://127.0.0.1:2999";
@@ -32,17 +32,21 @@ impl RiotLiveApiReader {
 
     fn fetch_raw(&self) -> Result<serde_json::Value, TftError> {
         let url = format!("{}{}", API_BASE, ALLGAME_ENDPOINT);
-        let response = self.client.get(&url)
+        let response = self
+            .client
+            .get(&url)
             .send()
             .map_err(|e| TftError::LiveApi(format!("HTTP request failed: {}", e)))?;
-        let json: serde_json::Value = response.json()
+        let json: serde_json::Value = response
+            .json()
             .map_err(|e| TftError::LiveApi(format!("JSON parse failed: {}", e)))?;
         Ok(json)
     }
 
     fn parse_game_state(raw: &serde_json::Value) -> Result<GameState, TftError> {
         // Parse active player data
-        let active = raw.get("activePlayer")
+        let active = raw
+            .get("activePlayer")
             .ok_or_else(|| TftError::LiveApi("missing activePlayer".to_string()))?;
 
         let current_gold = active
@@ -50,10 +54,7 @@ impl RiotLiveApiReader {
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0) as u8;
 
-        let level = active
-            .get("level")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(1) as u8;
+        let level = active.get("level").and_then(|v| v.as_u64()).unwrap_or(1) as u8;
 
         // Parse game stats
         let game_data = raw.get("gameData");
@@ -70,16 +71,19 @@ impl RiotLiveApiReader {
             .get("allPlayers")
             .and_then(|p| p.as_array())
             .map(|players| {
-                players.iter().filter_map(|p| {
-                    let name = p.get("summonerName")?.as_str()?.to_string();
-                    Some(OpponentSnapshot {
-                        player_name: name,
-                        hp: 100,
-                        level: 1,
-                        board_champions: vec![],
-                        active_traits: vec![],
+                players
+                    .iter()
+                    .filter_map(|p| {
+                        let name = p.get("summonerName")?.as_str()?.to_string();
+                        Some(OpponentSnapshot {
+                            player_name: name,
+                            hp: 100,
+                            level: 1,
+                            board_champions: vec![],
+                            active_traits: vec![],
+                        })
                     })
-                }).collect()
+                    .collect()
             })
             .unwrap_or_default();
 
@@ -87,7 +91,14 @@ impl RiotLiveApiReader {
             round: RoundInfo { stage, round: 1 },
             board: vec![],
             bench: vec![None; 9],
-            shop: (0..5).map(|_| ShopSlot { champion_id: None, cost: 0, locked: false, sold: false }).collect(),
+            shop: (0..5)
+                .map(|_| ShopSlot {
+                    champion_id: None,
+                    cost: 0,
+                    locked: false,
+                    sold: false,
+                })
+                .collect(),
             gold: current_gold,
             hp: 100,
             level,
@@ -116,13 +127,18 @@ impl GameStateReader for RiotLiveApiReader {
     fn poll(&self) -> Result<Option<GameState>, TftError> {
         match self.fetch_raw() {
             Ok(raw) => {
-                if let Ok(mut c) = self.connected.lock() { *c = true; }
+                if let Ok(mut c) = self.connected.lock() {
+                    *c = true;
+                }
                 match Self::parse_game_state(&raw) {
                     Ok(state) => {
                         if let Ok(mut last) = self.last_state.lock() {
                             *last = Some(state.clone());
                         }
-                        debug!("Live API: polled state stage={} round={}", state.round.stage, state.round.round);
+                        debug!(
+                            "Live API: polled state stage={} round={}",
+                            state.round.stage, state.round.round
+                        );
                         Ok(Some(state))
                     }
                     Err(e) => {
@@ -132,13 +148,17 @@ impl GameStateReader for RiotLiveApiReader {
                 }
             }
             Err(_) => {
-                if let Ok(mut c) = self.connected.lock() { *c = false; }
+                if let Ok(mut c) = self.connected.lock() {
+                    *c = false;
+                }
                 Ok(None) // Not connected is not an error
             }
         }
     }
 
-    fn mode(&self) -> ReaderMode { ReaderMode::LiveApi }
+    fn mode(&self) -> ReaderMode {
+        ReaderMode::LiveApi
+    }
 
     fn is_connected(&self) -> bool {
         self.connected.lock().map(|c| *c).unwrap_or(false)

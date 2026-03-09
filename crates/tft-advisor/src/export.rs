@@ -8,9 +8,9 @@
 //! - Parent directories are created if they do not exist
 //! - CSV always contains a header row
 
+use crate::metrics::AdvisorMetrics;
 use std::path::Path;
 use tft_types::{Placement, TftError};
-use crate::metrics::AdvisorMetrics;
 
 /// One row in the placement history export.
 #[derive(Debug, Clone, PartialEq)]
@@ -93,8 +93,7 @@ pub fn export_stats_csv(
 fn ensure_parent(path: &Path) -> Result<(), TftError> {
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| TftError::Io { source: e })?;
+            std::fs::create_dir_all(parent).map_err(|e| TftError::Io { source: e })?;
         }
     }
     Ok(())
@@ -174,8 +173,16 @@ mod tests {
         export_history_csv(&m, &path).expect("export failed in test");
         let contents = std::fs::read_to_string(&path).expect("read failed in test");
         let lines: Vec<&str> = contents.lines().collect();
-        assert!(lines[1].ends_with("true"), "placement 4 should be top_four: {}", lines[1]);
-        assert!(lines[2].ends_with("false"), "placement 5 should not be top_four: {}", lines[2]);
+        assert!(
+            lines[1].ends_with("true"),
+            "placement 4 should be top_four: {}",
+            lines[1]
+        );
+        assert!(
+            lines[2].ends_with("false"),
+            "placement 5 should not be top_four: {}",
+            lines[2]
+        );
     }
 
     // ── stats export ─────────────────────────────────────────────────────────
@@ -188,7 +195,10 @@ mod tests {
         export_stats_csv(&m, 100, &path).expect("export failed in test");
         let contents = std::fs::read_to_string(&path).expect("read failed in test");
         let lines: Vec<&str> = contents.lines().collect();
-        assert_eq!(lines[0], "games_played,games_trained,avg_placement,top_four_rate,first_place_rate");
+        assert_eq!(
+            lines[0],
+            "games_played,games_trained,avg_placement,top_four_rate,first_place_rate"
+        );
         assert!(lines[1].starts_with("4,100,"), "data row: {}", lines[1]);
     }
 
@@ -232,8 +242,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .map(|d| d.subsec_nanos())
             .unwrap_or(0);
-        let path = std::env::temp_dir()
-            .join(format!("tft_export_test_{}", nanos));
+        let path = std::env::temp_dir().join(format!("tft_export_test_{}", nanos));
         std::fs::create_dir_all(&path).expect("tempdir creation failed in test");
         path
     }

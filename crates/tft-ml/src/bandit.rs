@@ -11,7 +11,12 @@ pub struct BetaParams {
 }
 
 impl Default for BetaParams {
-    fn default() -> Self { Self { alpha: 1.0, beta: 1.0 } }
+    fn default() -> Self {
+        Self {
+            alpha: 1.0,
+            beta: 1.0,
+        }
+    }
 }
 
 impl BetaParams {
@@ -24,8 +29,14 @@ impl BetaParams {
         let var = (a * b) / ((a + b).powi(2) * (a + b + 1.0));
         let std = var.sqrt();
         // Box-Muller using deterministic seed
-        let u1 = ((seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407)) as f64 / u64::MAX as f64) as f32;
-        let u2 = ((seed.wrapping_mul(2862933555777941757).wrapping_add(3037000499)) as f64 / u64::MAX as f64) as f32;
+        let u1 = ((seed
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407)) as f64
+            / u64::MAX as f64) as f32;
+        let u2 = ((seed
+            .wrapping_mul(2862933555777941757)
+            .wrapping_add(3037000499)) as f64
+            / u64::MAX as f64) as f32;
         let n = (-2.0 * (u1 + f32::EPSILON).ln()).sqrt() * (2.0 * std::f32::consts::PI * u2).cos();
         (mean + std * n).clamp(0.0, 1.0)
     }
@@ -61,7 +72,8 @@ impl ThompsonSampling {
 
     /// Get a Thompson sample score for a given augment index.
     pub fn sample_score(&self, augment_idx: usize, seed: u64) -> Result<f32, TftError> {
-        self.params.get(augment_idx)
+        self.params
+            .get(augment_idx)
             .map(|p| p.sample(seed))
             .ok_or_else(|| TftError::AugmentNotFound(format!("index {}", augment_idx)))
     }
@@ -74,14 +86,17 @@ impl ThompsonSampling {
 
     /// Update bandit params for a chosen augment after observing reward.
     pub fn update(&mut self, augment_idx: usize, reward: f32) -> Result<(), TftError> {
-        self.params.get_mut(augment_idx)
+        self.params
+            .get_mut(augment_idx)
             .ok_or_else(|| TftError::AugmentNotFound(format!("index {}", augment_idx)))?
             .update(reward);
         self.games_seen += 1;
         Ok(())
     }
 
-    pub fn games_seen(&self) -> u32 { self.games_seen }
+    pub fn games_seen(&self) -> u32 {
+        self.games_seen
+    }
 }
 
 #[cfg(test)]
@@ -97,10 +112,18 @@ mod tests {
 
     #[test]
     fn test_beta_sample_in_range() {
-        let p = BetaParams { alpha: 5.0, beta: 2.0 };
+        let p = BetaParams {
+            alpha: 5.0,
+            beta: 2.0,
+        };
         for seed in 0u64..100 {
             let s = p.sample(seed);
-            assert!(s >= 0.0 && s <= 1.0, "sample {} out of range for seed {}", s, seed);
+            assert!(
+                s >= 0.0 && s <= 1.0,
+                "sample {} out of range for seed {}",
+                s,
+                seed
+            );
         }
     }
 
@@ -157,7 +180,10 @@ mod tests {
             ts.update(0, 0.7).expect("update failed in test");
         }
         let lambda_200 = ts.neural_net_lambda();
-        assert!(lambda_200 > lambda_0, "lambda should increase with more games");
+        assert!(
+            lambda_200 > lambda_0,
+            "lambda should increase with more games"
+        );
     }
 
     #[test]

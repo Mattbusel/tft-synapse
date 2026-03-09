@@ -81,8 +81,7 @@ fn apply_overlay_windows(config: &OverlayConfig) -> Result<(), String> {
         }
 
         let alpha = (config.opacity * 255.0) as u8;
-        let mut ex_style =
-            WINDOW_EX_STYLE(GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32);
+        let mut ex_style = WINDOW_EX_STYLE(GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32);
         ex_style |= WS_EX_LAYERED;
         if config.click_through {
             ex_style |= WS_EX_TRANSPARENT;

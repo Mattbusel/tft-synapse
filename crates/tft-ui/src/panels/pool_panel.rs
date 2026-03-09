@@ -1,27 +1,40 @@
+use crate::theme;
 use egui::Ui;
 use tft_advisor::{PoolEntry, PoolStatus};
-use crate::theme;
 
 pub fn render(ui: &mut Ui, pool: &[PoolEntry]) {
     ui.heading("Champion Pool");
     if pool.is_empty() {
-        ui.label(egui::RichText::new("No pool data").small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new("No pool data")
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
         return;
     }
     // Show only the 10 most contested (already sorted by remaining ascending)
     for entry in pool.iter().take(10) {
         let (status_text, color) = match entry.status {
             PoolStatus::Exhausted => ("GONE", theme::SCORE_LOW),
-            PoolStatus::Critical  => ("CRIT", theme::SCORE_LOW),
-            PoolStatus::Low       => ("LOW",  theme::SCORE_MID),
-            PoolStatus::Available => ("OK",   theme::SCORE_HIGH),
+            PoolStatus::Critical => ("CRIT", theme::SCORE_LOW),
+            PoolStatus::Low => ("LOW", theme::SCORE_MID),
+            PoolStatus::Available => ("OK", theme::SCORE_HIGH),
         };
         ui.horizontal(|ui| {
-            ui.label(egui::RichText::new(status_text).color(color).strong().small().monospace());
-            ui.label(egui::RichText::new(format!(
-                "  {}  ({}/{})",
-                entry.champion_name, entry.remaining, entry.pool_size
-            )).small());
+            ui.label(
+                egui::RichText::new(status_text)
+                    .color(color)
+                    .strong()
+                    .small()
+                    .monospace(),
+            );
+            ui.label(
+                egui::RichText::new(format!(
+                    "  {}  ({}/{})",
+                    entry.champion_name, entry.remaining, entry.pool_size
+                ))
+                .small(),
+            );
         });
     }
 }
@@ -67,9 +80,9 @@ mod tests {
     #[test]
     fn test_exhausted_entry_appears_first_when_sorted_by_remaining() {
         let mut pool = vec![
-            make_entry("Jinx",    5,  18, PoolStatus::Low),
-            make_entry("Caitlyn", 0,  29, PoolStatus::Exhausted),
-            make_entry("Vi",      12, 18, PoolStatus::Available),
+            make_entry("Jinx", 5, 18, PoolStatus::Low),
+            make_entry("Caitlyn", 0, 29, PoolStatus::Exhausted),
+            make_entry("Vi", 12, 18, PoolStatus::Available),
         ];
         pool.sort_by_key(|e| e.remaining);
         assert_eq!(pool[0].status, PoolStatus::Exhausted);

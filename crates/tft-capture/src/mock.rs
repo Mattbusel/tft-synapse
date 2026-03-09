@@ -1,8 +1,10 @@
 //! MockReader: replays pre-recorded GameState snapshots for testing.
 
-use tft_types::{AugmentId, ChampionId, ChampionSlot, GameState, RoundInfo, ShopSlot, StarLevel, TftError};
 use crate::reader::{GameStateReader, ReaderMode};
 use std::sync::{Arc, Mutex};
+use tft_types::{
+    AugmentId, ChampionId, ChampionSlot, GameState, RoundInfo, ShopSlot, StarLevel, TftError,
+};
 
 /// A reader that returns a fixed sequence of GameStates for testing.
 pub struct MockReader {
@@ -44,7 +46,9 @@ impl MockReader {
 }
 
 impl Default for MockReader {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GameStateReader for MockReader {
@@ -52,9 +56,13 @@ impl GameStateReader for MockReader {
         if !self.connected {
             return Ok(None);
         }
-        let states = self.states.lock()
+        let states = self
+            .states
+            .lock()
             .map_err(|_| TftError::Capture("mock lock poisoned".to_string()))?;
-        let mut idx = self.index.lock()
+        let mut idx = self
+            .index
+            .lock()
             .map_err(|_| TftError::Capture("mock index lock poisoned".to_string()))?;
         if states.is_empty() {
             return Ok(None);
@@ -64,9 +72,13 @@ impl GameStateReader for MockReader {
         Ok(Some(state))
     }
 
-    fn mode(&self) -> ReaderMode { ReaderMode::Mock }
+    fn mode(&self) -> ReaderMode {
+        ReaderMode::Mock
+    }
 
-    fn is_connected(&self) -> bool { self.connected }
+    fn is_connected(&self) -> bool {
+        self.connected
+    }
 }
 
 /// Returns a sensible default game state for testing.
@@ -74,16 +86,49 @@ pub fn default_game_state() -> GameState {
     GameState {
         round: RoundInfo { stage: 2, round: 1 },
         board: vec![
-            ChampionSlot { champion_id: ChampionId(0), star_level: StarLevel::One, items: vec![] },
-            ChampionSlot { champion_id: ChampionId(1), star_level: StarLevel::Two, items: vec![] },
+            ChampionSlot {
+                champion_id: ChampionId(0),
+                star_level: StarLevel::One,
+                items: vec![],
+            },
+            ChampionSlot {
+                champion_id: ChampionId(1),
+                star_level: StarLevel::Two,
+                items: vec![],
+            },
         ],
         bench: vec![None; 9],
         shop: vec![
-            ShopSlot { champion_id: Some(ChampionId(2)), cost: 2, locked: false, sold: false },
-            ShopSlot { champion_id: None, cost: 0, locked: false, sold: false },
-            ShopSlot { champion_id: None, cost: 0, locked: false, sold: false },
-            ShopSlot { champion_id: None, cost: 0, locked: false, sold: false },
-            ShopSlot { champion_id: None, cost: 0, locked: false, sold: false },
+            ShopSlot {
+                champion_id: Some(ChampionId(2)),
+                cost: 2,
+                locked: false,
+                sold: false,
+            },
+            ShopSlot {
+                champion_id: None,
+                cost: 0,
+                locked: false,
+                sold: false,
+            },
+            ShopSlot {
+                champion_id: None,
+                cost: 0,
+                locked: false,
+                sold: false,
+            },
+            ShopSlot {
+                champion_id: None,
+                cost: 0,
+                locked: false,
+                sold: false,
+            },
+            ShopSlot {
+                champion_id: None,
+                cost: 0,
+                locked: false,
+                sold: false,
+            },
         ],
         gold: 30,
         hp: 80,
@@ -150,13 +195,9 @@ mod tests {
     #[test]
     fn test_mock_reader_push_state() {
         let reader = MockReader::new();
-        let initial_len = {
-            reader.states.lock().expect("lock failed in test").len()
-        };
+        let initial_len = { reader.states.lock().expect("lock failed in test").len() };
         reader.push_state(default_game_state());
-        let new_len = {
-            reader.states.lock().expect("lock failed in test").len()
-        };
+        let new_len = { reader.states.lock().expect("lock failed in test").len() };
         assert_eq!(new_len, initial_len + 1);
     }
 

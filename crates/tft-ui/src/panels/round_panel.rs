@@ -1,26 +1,51 @@
-use egui::Ui;
-use tft_advisor::{StageAwareness, EventType};
 use crate::theme;
+use egui::Ui;
+use tft_advisor::{EventType, StageAwareness};
 
 pub fn render(ui: &mut Ui, awareness: &StageAwareness) {
     ui.heading("Stage Awareness");
-    ui.label(egui::RichText::new(format!(
-        "Stage {}-{}",
-        awareness.current_stage, awareness.current_round
-    )).color(theme::ACCENT_BLUE).strong().small());
+    ui.label(
+        egui::RichText::new(format!(
+            "Stage {}-{}",
+            awareness.current_stage, awareness.current_round
+        ))
+        .color(theme::ACCENT_BLUE)
+        .strong()
+        .small(),
+    );
 
-    let level_color = if awareness.is_level_behind { theme::SCORE_LOW } else { theme::SCORE_HIGH };
-    ui.label(egui::RichText::new(format!(
-        "Target level: {}{}",
-        awareness.recommended_level,
-        if awareness.is_level_behind { " (behind!)" } else { "" }
-    )).small().color(level_color));
+    let level_color = if awareness.is_level_behind {
+        theme::SCORE_LOW
+    } else {
+        theme::SCORE_HIGH
+    };
+    ui.label(
+        egui::RichText::new(format!(
+            "Target level: {}{}",
+            awareness.recommended_level,
+            if awareness.is_level_behind {
+                " (behind!)"
+            } else {
+                ""
+            }
+        ))
+        .small()
+        .color(level_color),
+    );
 
-    ui.label(egui::RichText::new(&awareness.current_priority).small().color(theme::TEXT_PRIMARY));
+    ui.label(
+        egui::RichText::new(&awareness.current_priority)
+            .small()
+            .color(theme::TEXT_PRIMARY),
+    );
 
     if !awareness.upcoming_events.is_empty() {
         ui.add_space(4.0);
-        ui.label(egui::RichText::new("Upcoming:").small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new("Upcoming:")
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
         for event in awareness.upcoming_events.iter().take(3) {
             let color = match event.event_type {
                 EventType::Augment => theme::SCORE_HIGH,
@@ -28,9 +53,16 @@ pub fn render(ui: &mut Ui, awareness: &StageAwareness) {
                 EventType::PvE => theme::ACCENT_BLUE,
                 EventType::LevelTarget => theme::TEXT_SECONDARY,
             };
-            let when = if event.rounds_away == 0 { "NOW".to_string() }
-                       else { format!("in {} rounds", event.rounds_away) };
-            ui.label(egui::RichText::new(format!("  {} - {}", when, event.description)).small().color(color));
+            let when = if event.rounds_away == 0 {
+                "NOW".to_string()
+            } else {
+                format!("in {} rounds", event.rounds_away)
+            };
+            ui.label(
+                egui::RichText::new(format!("  {} - {}", when, event.description))
+                    .small()
+                    .color(color),
+            );
         }
     }
 }
@@ -38,7 +70,7 @@ pub fn render(ui: &mut Ui, awareness: &StageAwareness) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_advisor::{StageAwareness, EventType, UpcomingEvent};
+    use tft_advisor::{EventType, StageAwareness, UpcomingEvent};
 
     fn make_awareness(stage: u8, round: u8, level_behind: bool) -> StageAwareness {
         StageAwareness {

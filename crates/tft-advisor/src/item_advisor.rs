@@ -9,8 +9,8 @@
 //! - Non-panicking: all operations via Result
 //! - O(board_size * items_held) per recommendation call
 
-use tft_types::{ChampionId, GameState, ItemCategory, ItemId, TftError};
 use tft_data::Catalog;
+use tft_types::{ChampionId, GameState, ItemCategory, ItemId, TftError};
 
 /// A single item placement recommendation.
 #[derive(Debug, Clone)]
@@ -38,18 +38,18 @@ impl ItemAdvisor {
         catalog: &Catalog,
     ) -> Result<Vec<ItemRecommendation>, TftError> {
         // Collect all champion slots from board and bench.
-        let mut all_slots: Vec<(ChampionId, bool)> = state.board
-            .iter()
-            .map(|s| (s.champion_id, true))
-            .collect();
-        let bench_slots: Vec<(ChampionId, bool)> = state.bench
+        let mut all_slots: Vec<(ChampionId, bool)> =
+            state.board.iter().map(|s| (s.champion_id, true)).collect();
+        let bench_slots: Vec<(ChampionId, bool)> = state
+            .bench
             .iter()
             .filter_map(|opt| opt.as_ref().map(|s| (s.champion_id, false)))
             .collect();
         all_slots.extend(bench_slots);
 
         // Collect held items from bench champions (treat as unequipped / carried).
-        let unequipped: Vec<ItemId> = state.bench
+        let unequipped: Vec<ItemId> = state
+            .bench
             .iter()
             .filter_map(|opt| opt.as_ref())
             .flat_map(|slot| slot.items.iter().copied())
@@ -58,7 +58,8 @@ impl ItemAdvisor {
         let mut recommendations = Vec::new();
 
         for item_id in &unequipped {
-            let item_def = catalog.item_by_id(*item_id)
+            let item_def = catalog
+                .item_by_id(*item_id)
                 .ok_or_else(|| TftError::Catalog(format!("Item {:?} not found", item_id)))?;
 
             let preferred_traits = preferred_traits_for_category(&item_def.category);
@@ -76,7 +77,8 @@ impl ItemAdvisor {
                     None => continue,
                 };
 
-                let score = score_champion_for_item(champ_def, &preferred_traits, &item_def.category);
+                let score =
+                    score_champion_for_item(champ_def, &preferred_traits, &item_def.category);
                 if score > best_score {
                     best_score = score;
                     best_champ = Some(champ_id);
@@ -84,13 +86,17 @@ impl ItemAdvisor {
             }
 
             let (target_name, reason) = if let Some(cid) = best_champ {
-                let name = catalog.champion_by_id(cid)
+                let name = catalog
+                    .champion_by_id(cid)
                     .map(|d| d.name.clone())
                     .unwrap_or_else(|| format!("Champion {:?}", cid));
                 let r = build_reason(&item_def.name, &name, &item_def.category, &preferred_traits);
                 (Some(name), r)
             } else {
-                (None, format!("No board champion found for {}", item_def.name))
+                (
+                    None,
+                    format!("No board champion found for {}", item_def.name),
+                )
             };
 
             let confidence = if best_score > 0.0 {
@@ -148,7 +154,9 @@ fn score_champion_for_item(
         return champ.cost.as_u8() as f32;
     }
 
-    let trait_matches = champ.traits.iter()
+    let trait_matches = champ
+        .traits
+        .iter()
         .filter(|t| preferred_traits.contains(&t.as_str()))
         .count() as f32;
 
@@ -168,7 +176,10 @@ fn build_reason(
     preferred_traits: &[&str],
 ) -> String {
     if preferred_traits.is_empty() {
-        format!("{} is a flexible item — placing on {} (highest cost carry)", item_name, champ_name)
+        format!(
+            "{} is a flexible item — placing on {} (highest cost carry)",
+            item_name, champ_name
+        )
     } else {
         format!(
             "{} suits {} — aligns with {:?} preferred traits: {}",
@@ -183,8 +194,8 @@ fn build_reason(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_types::{ChampionSlot, StarLevel, ChampionId, RoundInfo};
     use tft_data::Catalog;
+    use tft_types::{ChampionId, ChampionSlot, RoundInfo, StarLevel};
 
     fn make_catalog() -> Catalog {
         Catalog::from_embedded().expect("catalog init failed in test")
@@ -324,7 +335,9 @@ mod tests {
             star_level: StarLevel::One,
             items: vec![item_id],
         }));
-        let recs = advisor.advise_items(&state, &catalog).expect("failed in test");
+        let recs = advisor
+            .advise_items(&state, &catalog)
+            .expect("failed in test");
         assert!(!recs[0].item_name.is_empty());
     }
 
@@ -344,10 +357,15 @@ mod tests {
             star_level: StarLevel::One,
             items: vec![item_id],
         }));
-        let recs = advisor.advise_items(&state, &catalog).expect("failed in test");
+        let recs = advisor
+            .advise_items(&state, &catalog)
+            .expect("failed in test");
         for rec in &recs {
-            assert!(rec.confidence >= 0.0 && rec.confidence <= 1.0,
-                "confidence {} out of range", rec.confidence);
+            assert!(
+                rec.confidence >= 0.0 && rec.confidence <= 1.0,
+                "confidence {} out of range",
+                rec.confidence
+            );
         }
     }
 
@@ -367,7 +385,9 @@ mod tests {
             star_level: StarLevel::One,
             items: vec![item_id],
         }));
-        let recs = advisor.advise_items(&state, &catalog).expect("failed in test");
+        let recs = advisor
+            .advise_items(&state, &catalog)
+            .expect("failed in test");
         for rec in &recs {
             assert!(!rec.reason.is_empty());
         }
@@ -385,7 +405,9 @@ mod tests {
             star_level: StarLevel::One,
             items: vec![item_id],
         }));
-        let recs = advisor.advise_items(&state, &catalog).expect("failed in test");
+        let recs = advisor
+            .advise_items(&state, &catalog)
+            .expect("failed in test");
         assert_eq!(recs.len(), 1);
         assert!(recs[0].target_champion_id.is_none());
     }

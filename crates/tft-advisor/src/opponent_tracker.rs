@@ -8,8 +8,8 @@
 //! - Non-panicking: all operations via Result
 //! - Thread-safe: OpponentTracker holds no mutable state
 
-use tft_types::{GameState, OpponentSnapshot, TftError};
 use tft_data::Catalog;
+use tft_types::{GameState, OpponentSnapshot, TftError};
 
 /// Threat level from a specific opponent.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -94,7 +94,12 @@ impl OpponentTracker {
         if contested.is_empty() {
             format!("{} is {} (no contested traits)", name, threat_str)
         } else {
-            format!("{} is {} — contested: {}", name, threat_str, contested.join(", "))
+            format!(
+                "{} is {} — contested: {}",
+                name,
+                threat_str,
+                contested.join(", ")
+            )
         }
     }
 
@@ -162,9 +167,10 @@ impl OpponentTracker {
         contested_comps.sort();
 
         // Recommend pivot if your most prominent trait is contested by 3+ players
-        let recommended_pivot = your_traits.iter().find(|trait_name| {
-            trait_contest_count.get(*trait_name).copied().unwrap_or(0) >= 3
-        }).map(|trait_name| format!("Consider pivoting away from {}", trait_name));
+        let recommended_pivot = your_traits
+            .iter()
+            .find(|trait_name| trait_contest_count.get(*trait_name).copied().unwrap_or(0) >= 3)
+            .map(|trait_name| format!("Consider pivoting away from {}", trait_name));
 
         Ok(LobbyAnalysis {
             opponents: opponent_analyses,
@@ -183,7 +189,9 @@ impl Default for OpponentTracker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_types::{AugmentId, ChampionSlot, ChampionId, GameState, OpponentSnapshot, RoundInfo, StarLevel};
+    use tft_types::{
+        AugmentId, ChampionId, ChampionSlot, GameState, OpponentSnapshot, RoundInfo, StarLevel,
+    };
 
     fn make_catalog() -> &'static tft_data::Catalog {
         tft_data::Catalog::global().expect("catalog failed in test")
@@ -192,7 +200,11 @@ mod tests {
     fn make_state(active_traits: Vec<(String, u8)>, opponents: Vec<OpponentSnapshot>) -> GameState {
         GameState {
             round: RoundInfo { stage: 3, round: 1 },
-            board: vec![ChampionSlot { champion_id: ChampionId(0), star_level: StarLevel::One, items: vec![] }],
+            board: vec![ChampionSlot {
+                champion_id: ChampionId(0),
+                star_level: StarLevel::One,
+                items: vec![],
+            }],
             bench: vec![],
             shop: vec![],
             gold: 30,
@@ -239,7 +251,9 @@ mod tests {
     #[test]
     fn test_analyze_lobby_empty_opponents_gives_empty_analysis() {
         let state = make_state(vec![], vec![]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(analysis.opponents.is_empty());
         assert!(analysis.contested_comps.is_empty());
         assert!(analysis.recommended_pivot.is_none());
@@ -250,49 +264,63 @@ mod tests {
     #[test]
     fn test_threat_level_high_above_70() {
         let state = make_state(vec![], vec![make_opponent("A", 80, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::High);
     }
 
     #[test]
     fn test_threat_level_high_at_71() {
         let state = make_state(vec![], vec![make_opponent("A", 71, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::High);
     }
 
     #[test]
     fn test_threat_level_medium_at_70() {
         let state = make_state(vec![], vec![make_opponent("A", 70, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::Medium);
     }
 
     #[test]
     fn test_threat_level_medium_at_50() {
         let state = make_state(vec![], vec![make_opponent("A", 50, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::Medium);
     }
 
     #[test]
     fn test_threat_level_medium_at_31() {
         let state = make_state(vec![], vec![make_opponent("A", 31, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::Medium);
     }
 
     #[test]
     fn test_threat_level_low_at_30() {
         let state = make_state(vec![], vec![make_opponent("A", 30, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::Low);
     }
 
     #[test]
     fn test_threat_level_low_at_0() {
         let state = make_state(vec![], vec![make_opponent("A", 0, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::Low);
     }
 
@@ -304,8 +332,12 @@ mod tests {
             vec![("Gunner".to_string(), 2)],
             vec![make_opponent("Bob", 60, vec!["Gunner"])],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
-        assert!(analysis.opponents[0].contested_traits.contains(&"Gunner".to_string()));
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
+        assert!(analysis.opponents[0]
+            .contested_traits
+            .contains(&"Gunner".to_string()));
     }
 
     #[test]
@@ -314,7 +346,9 @@ mod tests {
             vec![("Gunner".to_string(), 2)],
             vec![make_opponent("Carol", 60, vec!["Arcanist"])],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(analysis.opponents[0].contested_traits.is_empty());
     }
 
@@ -322,9 +356,15 @@ mod tests {
     fn test_multiple_contested_traits() {
         let state = make_state(
             vec![("Gunner".to_string(), 2), ("Arcanist".to_string(), 2)],
-            vec![make_opponent("Dan", 55, vec!["Gunner", "Arcanist", "Invoker"])],
+            vec![make_opponent(
+                "Dan",
+                55,
+                vec!["Gunner", "Arcanist", "Invoker"],
+            )],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         let contested = &analysis.opponents[0].contested_traits;
         assert!(contested.contains(&"Gunner".to_string()));
         assert!(contested.contains(&"Arcanist".to_string()));
@@ -342,7 +382,9 @@ mod tests {
                 make_opponent("P2", 50, vec!["Gunner"]),
             ],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(analysis.contested_comps.contains(&"Gunner".to_string()));
     }
 
@@ -352,7 +394,9 @@ mod tests {
             vec![("Gunner".to_string(), 2)],
             vec![make_opponent("P1", 60, vec!["Gunner"])],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(!analysis.contested_comps.contains(&"Gunner".to_string()));
     }
 
@@ -368,7 +412,9 @@ mod tests {
                 make_opponent("P3", 70, vec!["Arcanist"]),
             ],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(analysis.recommended_pivot.is_some());
         let pivot = analysis.recommended_pivot.as_deref().unwrap_or("");
         assert!(pivot.contains("Arcanist"));
@@ -383,7 +429,9 @@ mod tests {
                 make_opponent("P2", 55, vec!["Arcanist"]),
             ],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(analysis.recommended_pivot.is_none());
     }
 
@@ -395,14 +443,18 @@ mod tests {
             vec![("Gunner".to_string(), 2)],
             vec![make_opponent("Eve", 75, vec!["Gunner"])],
         );
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(!analysis.opponents[0].summary.is_empty());
     }
 
     #[test]
     fn test_opponent_summary_includes_player_name() {
         let state = make_state(vec![], vec![make_opponent("UniquePlayerXYZ", 50, vec![])]);
-        let analysis = OpponentTracker::new().analyze_lobby(&state, make_catalog()).expect("analyze failed in test");
+        let analysis = OpponentTracker::new()
+            .analyze_lobby(&state, make_catalog())
+            .expect("analyze failed in test");
         assert!(analysis.opponents[0].summary.contains("UniquePlayerXYZ"));
     }
 

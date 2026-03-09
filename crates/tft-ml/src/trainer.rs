@@ -1,7 +1,7 @@
 //! Replay buffer and online gradient update logic.
 
+use crate::model::{Gradients, ShallowNet};
 use tft_types::{StateTransition, TftError};
-use crate::model::{ShallowNet, Gradients};
 
 const DEFAULT_CAPACITY: usize = 1000;
 const LEARNING_RATE: f32 = 1e-4;
@@ -25,7 +25,9 @@ impl ReplayBuffer {
         }
     }
 
-    pub fn with_default_capacity() -> Self { Self::new(DEFAULT_CAPACITY) }
+    pub fn with_default_capacity() -> Self {
+        Self::new(DEFAULT_CAPACITY)
+    }
 
     pub fn push(&mut self, transition: StateTransition) {
         if self.size < self.capacity {
@@ -37,18 +39,26 @@ impl ReplayBuffer {
         }
     }
 
-    pub fn len(&self) -> usize { self.size }
-    pub fn is_empty(&self) -> bool { self.size == 0 }
+    pub fn len(&self) -> usize {
+        self.size
+    }
+    pub fn is_empty(&self) -> bool {
+        self.size == 0
+    }
 
     /// Sample up to `n` items uniformly (deterministic for reproducibility in tests).
     pub fn sample(&self, n: usize, seed: u64) -> Vec<&StateTransition> {
-        if self.is_empty() { return vec![]; }
+        if self.is_empty() {
+            return vec![];
+        }
         let take = n.min(self.size);
         let mut indices: Vec<usize> = (0..self.size).collect();
         // Deterministic shuffle via seed
         let mut rng = seed;
         for i in (1..indices.len()).rev() {
-            rng = rng.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            rng = rng
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
             let j = (rng as usize) % (i + 1);
             indices.swap(i, j);
         }
@@ -66,9 +76,27 @@ pub fn apply_sgd_update(net: &mut ShallowNet, grads: &Gradients, lr: f32) {
             *b -= lr * g;
         }
     }
-    update_layer(&mut net.layer1.weights, &mut net.layer1.biases, &grads.d_w1, &grads.db1, lr);
-    update_layer(&mut net.layer2.weights, &mut net.layer2.biases, &grads.d_w2, &grads.db2, lr);
-    update_layer(&mut net.layer_out.weights, &mut net.layer_out.biases, &grads.d_wo, &grads.dbo, lr);
+    update_layer(
+        &mut net.layer1.weights,
+        &mut net.layer1.biases,
+        &grads.d_w1,
+        &grads.db1,
+        lr,
+    );
+    update_layer(
+        &mut net.layer2.weights,
+        &mut net.layer2.biases,
+        &grads.d_w2,
+        &grads.db2,
+        lr,
+    );
+    update_layer(
+        &mut net.layer_out.weights,
+        &mut net.layer_out.biases,
+        &grads.d_wo,
+        &grads.dbo,
+        lr,
+    );
 }
 
 /// Run one mini-batch update on the net using transitions from the replay buffer.
@@ -95,21 +123,39 @@ pub fn mini_batch_update(
         match acc_grads.as_mut() {
             None => acc_grads = Some(grads),
             Some(acc) => {
-                for (a, g) in acc.d_w1.iter_mut().zip(grads.d_w1.iter()) { *a += g; }
-                for (a, g) in acc.db1.iter_mut().zip(grads.db1.iter()) { *a += g; }
-                for (a, g) in acc.d_w2.iter_mut().zip(grads.d_w2.iter()) { *a += g; }
-                for (a, g) in acc.db2.iter_mut().zip(grads.db2.iter()) { *a += g; }
-                for (a, g) in acc.d_wo.iter_mut().zip(grads.d_wo.iter()) { *a += g; }
-                for (a, g) in acc.dbo.iter_mut().zip(grads.dbo.iter()) { *a += g; }
+                for (a, g) in acc.d_w1.iter_mut().zip(grads.d_w1.iter()) {
+                    *a += g;
+                }
+                for (a, g) in acc.db1.iter_mut().zip(grads.db1.iter()) {
+                    *a += g;
+                }
+                for (a, g) in acc.d_w2.iter_mut().zip(grads.d_w2.iter()) {
+                    *a += g;
+                }
+                for (a, g) in acc.db2.iter_mut().zip(grads.db2.iter()) {
+                    *a += g;
+                }
+                for (a, g) in acc.d_wo.iter_mut().zip(grads.d_wo.iter()) {
+                    *a += g;
+                }
+                for (a, g) in acc.dbo.iter_mut().zip(grads.dbo.iter()) {
+                    *a += g;
+                }
             }
         }
     }
 
     if let Some(mut g) = acc_grads {
         // Average gradients
-        for x in g.d_w1.iter_mut().chain(g.db1.iter_mut())
-            .chain(g.d_w2.iter_mut()).chain(g.db2.iter_mut())
-            .chain(g.d_wo.iter_mut()).chain(g.dbo.iter_mut()) {
+        for x in g
+            .d_w1
+            .iter_mut()
+            .chain(g.db1.iter_mut())
+            .chain(g.d_w2.iter_mut())
+            .chain(g.db2.iter_mut())
+            .chain(g.d_wo.iter_mut())
+            .chain(g.dbo.iter_mut())
+        {
             *x /= n;
         }
         apply_sgd_update(net, &g, LEARNING_RATE);
@@ -124,7 +170,11 @@ mod tests {
     use tft_types::Placement;
 
     fn make_transition(features: Vec<f32>, chosen: u8, placement: u8) -> StateTransition {
-        StateTransition { features, augment_chosen: chosen, placement: Some(Placement(placement)) }
+        StateTransition {
+            features,
+            augment_chosen: chosen,
+            placement: Some(Placement(placement)),
+        }
     }
 
     #[test]
@@ -185,7 +235,10 @@ mod tests {
             buf.push(make_transition(vec![0.5, 0.3, 0.1, 0.9], 1, 2));
         }
         mini_batch_update(&mut net, &buf, 8, 42).expect("update failed in test");
-        assert_ne!(net.layer1.weights, initial_w, "weights should change after update");
+        assert_ne!(
+            net.layer1.weights, initial_w,
+            "weights should change after update"
+        );
     }
 
     #[test]

@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::{AugmentId, ChampionId, ChampionSlot};
+use serde::{Deserialize, Serialize};
 
 /// Snapshot of a visible opponent's board state.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -110,7 +110,12 @@ mod tests {
 
     #[test]
     fn test_shop_slot_default_values() {
-        let slot = ShopSlot { champion_id: None, cost: 3, locked: false, sold: false };
+        let slot = ShopSlot {
+            champion_id: None,
+            cost: 3,
+            locked: false,
+            sold: false,
+        };
         assert!(slot.champion_id.is_none());
         assert!(!slot.locked);
     }
@@ -150,7 +155,8 @@ mod tests {
             active_traits: vec!["Arcanist".to_string()],
         };
         let json = serde_json::to_string(&snap).expect("serialize failed in test");
-        let back: OpponentSnapshot = serde_json::from_str(&json).expect("deserialize failed in test");
+        let back: OpponentSnapshot =
+            serde_json::from_str(&json).expect("deserialize failed in test");
         assert_eq!(snap.player_name, back.player_name);
         assert_eq!(snap.hp, back.hp);
         assert_eq!(snap.board_champions, back.board_champions);
@@ -166,9 +172,13 @@ mod tests {
     #[test]
     fn test_game_state_with_opponents_serde() {
         let mut state = GameState::default();
-        state.opponents = vec![
-            OpponentSnapshot { player_name: "Bob".to_string(), hp: 60, level: 6, board_champions: vec![], active_traits: vec![] },
-        ];
+        state.opponents = vec![OpponentSnapshot {
+            player_name: "Bob".to_string(),
+            hp: 60,
+            level: 6,
+            board_champions: vec![],
+            active_traits: vec![],
+        }];
         let json = serde_json::to_string(&state).expect("serialize failed in test");
         let back: GameState = serde_json::from_str(&json).expect("deserialize failed in test");
         assert_eq!(back.opponents.len(), 1);

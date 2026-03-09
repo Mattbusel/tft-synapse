@@ -4,14 +4,14 @@
 //! Primary: Riot Games Live Client Data API (localhost:2999)
 //! Fallback: ScreenCaptureReader (Win32 BitBlt), then MockReader for testing
 
-pub mod reader;
 pub mod live_api;
 pub mod mock;
+pub mod reader;
 pub mod screen_capture;
 
-pub use reader::{GameStateReader, ReaderMode};
-pub use mock::MockReader;
 pub use live_api::RiotLiveApiReader;
+pub use mock::MockReader;
+pub use reader::{GameStateReader, ReaderMode};
 pub use screen_capture::ScreenCaptureReader;
 
 /// Auto-detect the best available reader.

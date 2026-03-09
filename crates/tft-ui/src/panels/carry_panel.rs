@@ -1,11 +1,15 @@
+use crate::theme;
 use egui::Ui;
 use tft_advisor::CarryCandidate;
-use crate::theme;
 
 pub fn render(ui: &mut Ui, carries: &[CarryCandidate]) {
     ui.heading("Carry Targets");
     if carries.is_empty() {
-        ui.label(egui::RichText::new("No carry candidates yet").small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new("No carry candidates yet")
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
         return;
     }
     for (i, c) in carries.iter().enumerate() {
@@ -14,23 +18,34 @@ pub fn render(ui: &mut Ui, carries: &[CarryCandidate]) {
             1 => "2nd",
             _ => "3rd",
         };
-        let color = if i == 0 { theme::SCORE_HIGH } else { theme::TEXT_PRIMARY };
+        let color = if i == 0 {
+            theme::SCORE_HIGH
+        } else {
+            theme::TEXT_PRIMARY
+        };
         ui.horizontal(|ui| {
             ui.label(egui::RichText::new(label).color(color).strong().small());
-            ui.label(egui::RichText::new(format!(
-                "  {}  ({}/9 copies)",
-                c.champion_name, c.copies_held
-            )).small());
+            ui.label(
+                egui::RichText::new(format!(
+                    "  {}  ({}/9 copies)",
+                    c.champion_name, c.copies_held
+                ))
+                .small(),
+            );
         });
-        ui.label(egui::RichText::new(&c.reason).small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new(&c.reason)
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_types::ChampionId;
     use tft_advisor::CarryCandidate;
+    use tft_types::ChampionId;
 
     #[test]
     fn test_carry_candidate_struct() {
@@ -55,10 +70,28 @@ mod tests {
     #[test]
     fn test_carry_score_ordering() {
         let mut carries = vec![
-            CarryCandidate { champion_id: ChampionId(1), champion_name: "A".to_string(), copies_held: 3, copies_needed: 6, score: 0.5, reason: String::new() },
-            CarryCandidate { champion_id: ChampionId(2), champion_name: "B".to_string(), copies_held: 6, copies_needed: 3, score: 0.9, reason: String::new() },
+            CarryCandidate {
+                champion_id: ChampionId(1),
+                champion_name: "A".to_string(),
+                copies_held: 3,
+                copies_needed: 6,
+                score: 0.5,
+                reason: String::new(),
+            },
+            CarryCandidate {
+                champion_id: ChampionId(2),
+                champion_name: "B".to_string(),
+                copies_held: 6,
+                copies_needed: 3,
+                score: 0.9,
+                reason: String::new(),
+            },
         ];
-        carries.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        carries.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         assert_eq!(carries[0].champion_name, "B");
     }
 }

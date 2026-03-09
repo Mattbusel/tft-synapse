@@ -33,10 +33,16 @@ pub enum TftError {
     ChampionNotFound(String),
 
     #[error("IO error: {source}")]
-    Io { #[from] source: std::io::Error },
+    Io {
+        #[from]
+        source: std::io::Error,
+    },
 
     #[error("JSON error: {source}")]
-    Json { #[from] source: serde_json::Error },
+    Json {
+        #[from]
+        source: serde_json::Error,
+    },
 
     #[error("Configuration error: {0}")]
     Config(String),

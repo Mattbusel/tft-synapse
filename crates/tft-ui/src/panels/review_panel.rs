@@ -1,26 +1,52 @@
+use crate::theme;
 use egui::Ui;
 use tft_advisor::ReviewEntry;
-use crate::theme;
 
 pub fn render(ui: &mut Ui, review: &[ReviewEntry]) {
     ui.heading("Game Review");
     if review.is_empty() {
-        ui.label(egui::RichText::new("No decisions recorded yet").small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new("No decisions recorded yet")
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
         return;
     }
     for entry in review {
-        let score_color = if entry.chosen_score >= 0.7 { theme::SCORE_HIGH } else { theme::SCORE_MID };
+        let score_color = if entry.chosen_score >= 0.7 {
+            theme::SCORE_HIGH
+        } else {
+            theme::SCORE_MID
+        };
         ui.horizontal(|ui| {
-            ui.label(egui::RichText::new(format!("{}-{}", entry.stage, entry.round)).small().color(theme::TEXT_SECONDARY).monospace());
-            ui.label(egui::RichText::new(&entry.chosen_name).color(score_color).small().strong());
-            ui.label(egui::RichText::new(format!("{:.0}%", entry.chosen_score * 100.0)).small().color(score_color));
+            ui.label(
+                egui::RichText::new(format!("{}-{}", entry.stage, entry.round))
+                    .small()
+                    .color(theme::TEXT_SECONDARY)
+                    .monospace(),
+            );
+            ui.label(
+                egui::RichText::new(&entry.chosen_name)
+                    .color(score_color)
+                    .small()
+                    .strong(),
+            );
+            ui.label(
+                egui::RichText::new(format!("{:.0}%", entry.chosen_score * 100.0))
+                    .small()
+                    .color(score_color),
+            );
             if entry.was_top_pick {
                 ui.label(egui::RichText::new("*").color(theme::SCORE_HIGH).small());
             }
         });
         if !entry.alternatives.is_empty() {
             let alts: Vec<&str> = entry.alternatives.iter().map(|(n, _)| n.as_str()).collect();
-            ui.label(egui::RichText::new(format!("  Others: {}", alts.join(", "))).small().color(theme::TEXT_SECONDARY));
+            ui.label(
+                egui::RichText::new(format!("  Others: {}", alts.join(", ")))
+                    .small()
+                    .color(theme::TEXT_SECONDARY),
+            );
         }
     }
 }

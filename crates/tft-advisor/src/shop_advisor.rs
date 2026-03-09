@@ -13,8 +13,8 @@
 //! - Positioning / item recommendations (see board_advisor)
 //! - Long-term economy projections beyond current gold
 
-use tft_types::{GameState, TftError};
 use tft_data::Catalog;
+use tft_types::{GameState, TftError};
 
 /// A recommendation for a single shop slot.
 #[derive(Debug, Clone)]
@@ -224,11 +224,15 @@ impl ShopAdvisor {
 
         for trait_name in champ_traits {
             // Count how many board units already share this trait
-            let board_count = state.board.iter().filter(|slot| {
-                catalog
-                    .champion_by_id(slot.champion_id)
-                    .is_some_and(|def| def.traits.contains(trait_name))
-            }).count() as u8;
+            let board_count = state
+                .board
+                .iter()
+                .filter(|slot| {
+                    catalog
+                        .champion_by_id(slot.champion_id)
+                        .is_some_and(|def| def.traits.contains(trait_name))
+                })
+                .count() as u8;
 
             if board_count < 2 {
                 // Trait not yet represented enough to be compelling
@@ -341,10 +345,16 @@ mod tests {
         let mut state = base_state();
         state.gold = 2;
         state.shop = vec![slot_with(0, 1)];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         assert!(!recs.is_empty());
         for r in &recs {
-            assert!(!r.should_buy, "should not buy when gold < 4, got {:?}", r.reason);
+            assert!(
+                !r.should_buy,
+                "should not buy when gold < 4, got {:?}",
+                r.reason
+            );
         }
     }
 
@@ -357,7 +367,9 @@ mod tests {
         // Put champion 0 in shop and on board → upgrade path
         state.shop = vec![slot_with(0, 1)];
         state.board = vec![board_slot(0)];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         let r = &recs[0];
         assert!(r.should_buy, "should buy upgrade when gold == 4");
     }
@@ -372,7 +384,9 @@ mod tests {
         state.gold = 20;
         state.shop = vec![slot_with(0, 1)];
         state.board = vec![board_slot(0)];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         assert_eq!(recs.len(), 1);
         assert!(recs[0].should_buy);
         assert!(recs[0].priority >= 0.8);
@@ -385,8 +399,20 @@ mod tests {
         let mut state = base_state();
         state.gold = 20;
         state.shop = vec![slot_with(0, 1)];
-        state.bench = vec![Some(board_slot(0)), None, None, None, None, None, None, None, None];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        state.bench = vec![
+            Some(board_slot(0)),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ];
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         assert!(recs[0].should_buy, "should buy upgrade from bench");
     }
 
@@ -404,7 +430,9 @@ mod tests {
             locked: false,
             sold: true,
         }];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         assert!(recs.is_empty(), "sold slots should be skipped");
     }
 
@@ -420,7 +448,9 @@ mod tests {
             locked: false,
             sold: false,
         }];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         assert!(recs.is_empty(), "empty slots should be skipped");
     }
 
@@ -433,7 +463,9 @@ mod tests {
         let mut state = base_state();
         state.gold = 30;
         state.shop = vec![slot_with(0, 1)];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         if let Some(r) = recs.first() {
             assert!(!r.champion_name.is_empty());
         }
@@ -446,10 +478,15 @@ mod tests {
         let mut state = base_state();
         state.gold = 30;
         state.shop = vec![slot_with(0, 1)];
-        let recs = advisor.advise_buys(&state, cat).expect("advise_buys failed in test");
+        let recs = advisor
+            .advise_buys(&state, cat)
+            .expect("advise_buys failed in test");
         for r in &recs {
-            assert!((0.0..=1.0).contains(&r.priority),
-                "priority out of range: {}", r.priority);
+            assert!(
+                (0.0..=1.0).contains(&r.priority),
+                "priority out of range: {}",
+                r.priority
+            );
         }
     }
 
@@ -484,7 +521,10 @@ mod tests {
         // shop has a unit NOT on board/bench
         state.shop = vec![slot_with(5, 2)];
         let rec = advisor.advise_reroll(&state);
-        assert!(rec.should_reroll, "should reroll when hp < 30 and no upgrades");
+        assert!(
+            rec.should_reroll,
+            "should reroll when hp < 30 and no upgrades"
+        );
     }
 
     #[test]
@@ -498,7 +538,10 @@ mod tests {
         state.shop = vec![slot_with(0, 1)];
         state.board = vec![board_slot(0)];
         let rec = advisor.advise_reroll(&state);
-        assert!(!rec.should_reroll, "should not reroll when upgrades are available");
+        assert!(
+            !rec.should_reroll,
+            "should not reroll when upgrades are available"
+        );
     }
 
     #[test]

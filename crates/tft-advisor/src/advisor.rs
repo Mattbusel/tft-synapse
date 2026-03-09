@@ -1,22 +1,22 @@
 //! Advisor: main decision engine tying together ML and reasoning.
 
-use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
-use tft_types::{AugmentId, GameState, Placement, TftError};
-use tft_data::Catalog;
-use tft_ml::AugmentPolicy;
-use crate::reasoning::explain_augment;
-use crate::round_timer::{RoundTimer, StageAwareness};
-use crate::session::{GameSession, ReviewEntry};
-use crate::metrics::AdvisorMetrics;
-use crate::shop_advisor::{ShopAdvisor, ShopRecommendation, RerollRecommendation};
 use crate::board_advisor::{BoardAdvisor, BoardRecommendation};
-use crate::economy_advisor::{EconomyAdvisor, EconomyAdvice};
 use crate::carry_advisor::{CarryAdvisor, CarryCandidate};
+use crate::economy_advisor::{EconomyAdvice, EconomyAdvisor};
 use crate::item_advisor::{ItemAdvisor, ItemRecommendation};
+use crate::metrics::AdvisorMetrics;
 use crate::opponent_tracker::{LobbyAnalysis, OpponentTracker};
 use crate::pool_tracker::{PoolEntry, PoolTracker};
 use crate::positioning_advisor::{BoardLayout, PositioningAdvisor};
+use crate::reasoning::explain_augment;
+use crate::round_timer::{RoundTimer, StageAwareness};
+use crate::session::{GameSession, ReviewEntry};
+use crate::shop_advisor::{RerollRecommendation, ShopAdvisor, ShopRecommendation};
+use std::path::PathBuf;
+use std::time::{SystemTime, UNIX_EPOCH};
+use tft_data::Catalog;
+use tft_ml::AugmentPolicy;
+use tft_types::{AugmentId, GameState, Placement, TftError};
 use tracing::info;
 
 /// A single augment recommendation with score and reasoning.
@@ -114,21 +114,33 @@ impl Advisor {
 
         let ranked_scores = self.policy.rank_augments(state, &choices)?;
 
-        let ranked: Vec<RecommendedAugment> = ranked_scores.iter().map(|&(id, score)| {
-            let reasoning = explain_augment(id, score, state, self.catalog);
-            RecommendedAugment { id, score, reasoning }
-        }).collect();
+        let ranked: Vec<RecommendedAugment> = ranked_scores
+            .iter()
+            .map(|&(id, score)| {
+                let reasoning = explain_augment(id, score, state, self.catalog);
+                RecommendedAugment {
+                    id,
+                    score,
+                    reasoning,
+                }
+            })
+            .collect();
 
-        let top_pick = ranked.first()
+        let top_pick = ranked
+            .first()
             .map(|r| r.id)
             .ok_or_else(|| TftError::InvalidState("no ranked augments".to_string()))?;
 
         // Record the decision in the session
         if let Some(top) = ranked.first() {
-            self.session.record_decision(state, choices, top.id, top.score);
+            self.session
+                .record_decision(state, choices, top.id, top.score);
         }
 
-        info!("Advise: top pick {:?} score={:.3}", top_pick, ranked[0].score);
+        info!(
+            "Advise: top pick {:?} score={:.3}",
+            top_pick, ranked[0].score
+        );
         Ok(Some(Recommendation { ranked, top_pick }))
     }
 
@@ -148,8 +160,23 @@ impl Advisor {
         let stage_awareness = self.round_timer.analyze(state);
         let review = self.session.review_summary(self.catalog);
         let pool = self.pool_tracker.track(state, self.catalog)?;
-        let positions = self.positioning_advisor.advise_positions(state, self.catalog)?;
-        Ok(FullRecommendation { augment, shop, reroll, board, economy, carries, items, lobby, stage_awareness, review, pool, positions })
+        let positions = self
+            .positioning_advisor
+            .advise_positions(state, self.catalog)?;
+        Ok(FullRecommendation {
+            augment,
+            shop,
+            reroll,
+            board,
+            economy,
+            carries,
+            items,
+            lobby,
+            stage_awareness,
+            review,
+            pool,
+            positions,
+        })
     }
 
     /// Call after a game ends with the final placement.
@@ -158,19 +185,26 @@ impl Advisor {
         self.policy.record_game_outcome(placement)?;
         self.policy.save()?;
         self.metrics.record_placement(placement);
-        info!("Game finished: placement={}, total_games={}", placement.0, self.metrics.games_played);
+        info!(
+            "Game finished: placement={}, total_games={}",
+            placement.0, self.metrics.games_played
+        );
         Ok(())
     }
 
-    pub fn games_trained(&self) -> u32 { self.policy.games_trained() }
-    pub fn session(&self) -> &GameSession { &self.session }
+    pub fn games_trained(&self) -> u32 {
+        self.policy.games_trained()
+    }
+    pub fn session(&self) -> &GameSession {
+        &self.session
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_types::{ChampionId, ChampionSlot, GameState, RoundInfo, StarLevel};
     use std::env::temp_dir;
+    use tft_types::{ChampionId, ChampionSlot, GameState, RoundInfo, StarLevel};
 
     fn make_advisor() -> Advisor {
         let path = temp_dir().join("tft_advisor_test_model.json");
@@ -180,7 +214,11 @@ mod tests {
     fn make_state_with_choices() -> GameState {
         GameState {
             round: RoundInfo { stage: 2, round: 1 },
-            board: vec![ChampionSlot { champion_id: ChampionId(0), star_level: StarLevel::One, items: vec![] }],
+            board: vec![ChampionSlot {
+                champion_id: ChampionId(0),
+                star_level: StarLevel::One,
+                items: vec![],
+            }],
             bench: vec![],
             shop: vec![],
             gold: 30,
@@ -221,7 +259,10 @@ mod tests {
     fn test_recommendation_has_three_options() {
         let mut advisor = make_advisor();
         let state = make_state_with_choices();
-        let rec = advisor.advise(&state).expect("advise failed in test").expect("no recommendation");
+        let rec = advisor
+            .advise(&state)
+            .expect("advise failed in test")
+            .expect("no recommendation");
         assert_eq!(rec.ranked.len(), 3);
     }
 
@@ -229,7 +270,10 @@ mod tests {
     fn test_recommendation_top_pick_matches_first_ranked() {
         let mut advisor = make_advisor();
         let state = make_state_with_choices();
-        let rec = advisor.advise(&state).expect("advise failed in test").expect("no recommendation");
+        let rec = advisor
+            .advise(&state)
+            .expect("advise failed in test")
+            .expect("no recommendation");
         assert_eq!(rec.top_pick, rec.ranked[0].id);
     }
 
@@ -237,9 +281,16 @@ mod tests {
     fn test_recommendation_reasoning_not_empty() {
         let mut advisor = make_advisor();
         let state = make_state_with_choices();
-        let rec = advisor.advise(&state).expect("advise failed in test").expect("no recommendation");
+        let rec = advisor
+            .advise(&state)
+            .expect("advise failed in test")
+            .expect("no recommendation");
         for r in &rec.ranked {
-            assert!(!r.reasoning.is_empty(), "reasoning should not be empty for {:?}", r.id);
+            assert!(
+                !r.reasoning.is_empty(),
+                "reasoning should not be empty for {:?}",
+                r.id
+            );
         }
     }
 
@@ -248,7 +299,9 @@ mod tests {
         let mut advisor = make_advisor();
         let state = make_state_with_choices();
         advisor.advise(&state).expect("advise failed in test");
-        advisor.finish_game(Placement(3)).expect("finish game failed in test");
+        advisor
+            .finish_game(Placement(3))
+            .expect("finish game failed in test");
         assert_eq!(advisor.metrics.games_played, 1);
     }
 
@@ -274,8 +327,13 @@ mod tests {
     fn test_advise_full_augment_present_in_augment_phase() {
         let mut advisor = make_advisor();
         let state = make_state_with_choices();
-        let full = advisor.advise_full(&state).expect("advise_full failed in test");
-        assert!(full.augment.is_some(), "augment should be present during augment phase");
+        let full = advisor
+            .advise_full(&state)
+            .expect("advise_full failed in test");
+        assert!(
+            full.augment.is_some(),
+            "augment should be present during augment phase"
+        );
     }
 
     #[test]
@@ -283,7 +341,9 @@ mod tests {
         let mut advisor = make_advisor();
         let mut state = make_state_with_choices();
         state.augment_choices = None;
-        let full = advisor.advise_full(&state).expect("advise_full failed in test");
+        let full = advisor
+            .advise_full(&state)
+            .expect("advise_full failed in test");
         assert!(full.augment.is_none());
     }
 
@@ -291,7 +351,9 @@ mod tests {
     fn test_advise_full_board_recommendation_present() {
         let mut advisor = make_advisor();
         let state = make_state_with_choices();
-        let full = advisor.advise_full(&state).expect("advise_full failed in test");
+        let full = advisor
+            .advise_full(&state)
+            .expect("advise_full failed in test");
         // board recommendation struct always present (even for empty board)
         let _ = &full.board;
     }
@@ -300,7 +362,9 @@ mod tests {
     fn test_advise_full_reroll_recommendation_present() {
         let mut advisor = make_advisor();
         let state = make_state_with_choices();
-        let full = advisor.advise_full(&state).expect("advise_full failed in test");
+        let full = advisor
+            .advise_full(&state)
+            .expect("advise_full failed in test");
         assert!(!full.reroll.reason.is_empty());
     }
 }

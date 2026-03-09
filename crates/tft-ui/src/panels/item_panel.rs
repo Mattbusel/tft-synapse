@@ -1,20 +1,37 @@
+use crate::theme;
 use egui::Ui;
 use tft_advisor::ItemRecommendation;
-use crate::theme;
 
 pub fn render(ui: &mut Ui, items: &[ItemRecommendation]) {
     ui.heading("Items");
     if items.is_empty() {
-        ui.label(egui::RichText::new("No item recommendations").small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new("No item recommendations")
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
         return;
     }
     for item in items.iter().take(5) {
         let target = item.target_champion_name.as_deref().unwrap_or("No target");
         ui.horizontal(|ui| {
-            ui.label(egui::RichText::new(&item.item_name).color(theme::TEXT_PRIMARY).small().strong());
-            ui.label(egui::RichText::new(format!("-> {}", target)).small().color(theme::SCORE_MID));
+            ui.label(
+                egui::RichText::new(&item.item_name)
+                    .color(theme::TEXT_PRIMARY)
+                    .small()
+                    .strong(),
+            );
+            ui.label(
+                egui::RichText::new(format!("-> {}", target))
+                    .small()
+                    .color(theme::SCORE_MID),
+            );
         });
-        ui.label(egui::RichText::new(&item.reason).small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new(&item.reason)
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
     }
 }
 

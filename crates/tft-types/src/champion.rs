@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::item::ItemId;
+use serde::{Deserialize, Serialize};
 
 /// Unique identifier for a champion, indexed into the catalog.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -27,19 +27,25 @@ impl Cost {
         }
     }
 
-    pub fn as_u8(self) -> u8 { self as u8 }
+    pub fn as_u8(self) -> u8 {
+        self as u8
+    }
 }
 
 /// Champion star level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum StarLevel { One = 1, Two = 2, Three = 3 }
+pub enum StarLevel {
+    One = 1,
+    Two = 2,
+    Three = 3,
+}
 
 /// A champion slot on the board or bench.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChampionSlot {
     pub champion_id: ChampionId,
     pub star_level: StarLevel,
-    pub items: Vec<ItemId>,  // item ids
+    pub items: Vec<ItemId>, // item ids
 }
 
 /// Full definition from catalog.
@@ -102,7 +108,11 @@ mod tests {
 
     #[test]
     fn test_champion_slot_clone() {
-        let slot = ChampionSlot { champion_id: ChampionId(3), star_level: StarLevel::Two, items: vec![ItemId(1), ItemId(2)] };
+        let slot = ChampionSlot {
+            champion_id: ChampionId(3),
+            star_level: StarLevel::Two,
+            items: vec![ItemId(1), ItemId(2)],
+        };
         let c = slot.clone();
         assert_eq!(slot.champion_id, c.champion_id);
         assert_eq!(slot.items, c.items);

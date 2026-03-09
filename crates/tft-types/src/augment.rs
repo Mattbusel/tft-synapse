@@ -23,16 +23,16 @@ impl AugmentTier {
     /// Numeric weight for tier comparisons.
     pub fn weight(&self) -> f32 {
         match self {
-            AugmentTier::SPlus  => 1.0,
-            AugmentTier::S      => 0.95,
+            AugmentTier::SPlus => 1.0,
+            AugmentTier::S => 0.95,
             AugmentTier::SMinus => 0.90,
-            AugmentTier::APlus  => 0.85,
-            AugmentTier::A      => 0.80,
+            AugmentTier::APlus => 0.85,
+            AugmentTier::A => 0.80,
             AugmentTier::AMinus => 0.75,
-            AugmentTier::BPlus  => 0.70,
-            AugmentTier::B      => 0.65,
+            AugmentTier::BPlus => 0.70,
+            AugmentTier::B => 0.65,
             AugmentTier::BMinus => 0.60,
-            AugmentTier::C      => 0.50,
+            AugmentTier::C => 0.50,
         }
     }
 }
@@ -70,13 +70,24 @@ mod tests {
     #[test]
     fn test_augment_tier_weight_bounds() {
         for tier in [
-            AugmentTier::SPlus, AugmentTier::S, AugmentTier::SMinus,
-            AugmentTier::APlus, AugmentTier::A, AugmentTier::AMinus,
-            AugmentTier::BPlus, AugmentTier::B, AugmentTier::BMinus,
+            AugmentTier::SPlus,
+            AugmentTier::S,
+            AugmentTier::SMinus,
+            AugmentTier::APlus,
+            AugmentTier::A,
+            AugmentTier::AMinus,
+            AugmentTier::BPlus,
+            AugmentTier::B,
+            AugmentTier::BMinus,
             AugmentTier::C,
         ] {
             let w = tier.weight();
-            assert!(w >= 0.0 && w <= 1.0, "weight {} out of bounds for {:?}", w, tier);
+            assert!(
+                w >= 0.0 && w <= 1.0,
+                "weight {} out of bounds for {:?}",
+                w,
+                tier
+            );
         }
     }
 

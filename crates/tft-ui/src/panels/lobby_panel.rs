@@ -1,12 +1,16 @@
+use crate::theme;
 use egui::Ui;
 use tft_advisor::{LobbyAnalysis, ThreatLevel};
-use crate::theme;
 
 pub fn render(ui: &mut Ui, lobby: &LobbyAnalysis) {
     ui.heading("Lobby");
 
     if lobby.opponents.is_empty() {
-        ui.label(egui::RichText::new("No opponent data").small().color(theme::TEXT_SECONDARY));
+        ui.label(
+            egui::RichText::new("No opponent data")
+                .small()
+                .color(theme::TEXT_SECONDARY),
+        );
         return;
     }
 
@@ -29,8 +33,16 @@ pub fn render(ui: &mut Ui, lobby: &LobbyAnalysis) {
             ThreatLevel::Low => theme::SCORE_HIGH,
         };
         ui.horizontal(|ui| {
-            ui.label(egui::RichText::new(&opp.player_name).small().color(threat_color));
-            ui.label(egui::RichText::new(format!("{}hp", opp.hp)).small().color(theme::TEXT_SECONDARY));
+            ui.label(
+                egui::RichText::new(&opp.player_name)
+                    .small()
+                    .color(threat_color),
+            );
+            ui.label(
+                egui::RichText::new(format!("{}hp", opp.hp))
+                    .small()
+                    .color(theme::TEXT_SECONDARY),
+            );
         });
     }
 }
@@ -42,15 +54,13 @@ mod tests {
 
     fn make_lobby() -> LobbyAnalysis {
         LobbyAnalysis {
-            opponents: vec![
-                OpponentAnalysis {
-                    player_name: "Alice".to_string(),
-                    hp: 80,
-                    threat_level: ThreatLevel::High,
-                    contested_traits: vec!["Arcanist".to_string()],
-                    summary: "High HP, running Arcanist".to_string(),
-                }
-            ],
+            opponents: vec![OpponentAnalysis {
+                player_name: "Alice".to_string(),
+                hp: 80,
+                threat_level: ThreatLevel::High,
+                contested_traits: vec!["Arcanist".to_string()],
+                summary: "High HP, running Arcanist".to_string(),
+            }],
             contested_comps: vec!["Arcanist".to_string()],
             recommended_pivot: Some("Consider pivoting away from Arcanist".to_string()),
         }
@@ -82,7 +92,11 @@ mod tests {
 
     #[test]
     fn test_empty_lobby() {
-        let lobby = LobbyAnalysis { opponents: vec![], contested_comps: vec![], recommended_pivot: None };
+        let lobby = LobbyAnalysis {
+            opponents: vec![],
+            contested_comps: vec![],
+            recommended_pivot: None,
+        };
         assert!(lobby.opponents.is_empty());
     }
 }

@@ -23,8 +23,8 @@ pub struct ItemDef {
     pub id: ItemId,
     pub name: String,
     pub category: ItemCategory,
-    pub is_component: bool,     // true = basic component, false = combined item
-    pub tags: Vec<String>,      // e.g. ["AD", "tank", "fighter"]
+    pub is_component: bool, // true = basic component, false = combined item
+    pub tags: Vec<String>,  // e.g. ["AD", "tank", "fighter"]
 }
 
 #[cfg(test)]

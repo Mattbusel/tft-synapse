@@ -71,26 +71,23 @@ impl Default for StageAwareness {
 /// These are encoded as static data and searched at runtime.
 const KEY_EVENTS: &[(u8, u8, EventType, &str)] = &[
     // Carousels — start of each stage (x-1)
-    (1, 1, EventType::Carousel,    "Opening carousel"),
-    (2, 1, EventType::Carousel,    "Stage 2 carousel"),
-    (3, 1, EventType::Carousel,    "Stage 3 carousel"),
-    (4, 1, EventType::Carousel,    "Stage 4 carousel"),
-    (5, 1, EventType::Carousel,    "Stage 5 carousel"),
-    (6, 1, EventType::Carousel,    "Stage 6 carousel"),
-
+    (1, 1, EventType::Carousel, "Opening carousel"),
+    (2, 1, EventType::Carousel, "Stage 2 carousel"),
+    (3, 1, EventType::Carousel, "Stage 3 carousel"),
+    (4, 1, EventType::Carousel, "Stage 4 carousel"),
+    (5, 1, EventType::Carousel, "Stage 5 carousel"),
+    (6, 1, EventType::Carousel, "Stage 6 carousel"),
     // PvE rounds
-    (1, 3, EventType::PvE,         "PvE: Little Wolves"),
-    (1, 4, EventType::PvE,         "PvE: Armory / Mini-boss"),
-    (2, 5, EventType::PvE,         "PvE: Krugs"),
-    (3, 5, EventType::PvE,         "PvE: Raptors"),
-    (4, 5, EventType::PvE,         "PvE: Dragon / Baron"),
-
+    (1, 3, EventType::PvE, "PvE: Little Wolves"),
+    (1, 4, EventType::PvE, "PvE: Armory / Mini-boss"),
+    (2, 5, EventType::PvE, "PvE: Krugs"),
+    (3, 5, EventType::PvE, "PvE: Raptors"),
+    (4, 5, EventType::PvE, "PvE: Dragon / Baron"),
     // Augment rounds
-    (2, 1, EventType::Augment,     "First augment choice"),
-    (2, 3, EventType::Augment,     "Second augment choice (early)"),
-    (3, 2, EventType::Augment,     "Second augment choice"),
-    (4, 2, EventType::Augment,     "Third augment choice"),
-
+    (2, 1, EventType::Augment, "First augment choice"),
+    (2, 3, EventType::Augment, "Second augment choice (early)"),
+    (3, 2, EventType::Augment, "Second augment choice"),
+    (4, 2, EventType::Augment, "Third augment choice"),
     // Level targets
     (2, 1, EventType::LevelTarget, "Target level 4 by stage 2-1"),
     (2, 3, EventType::LevelTarget, "Target level 5 by stage 2-3"),
@@ -160,7 +157,11 @@ impl RoundTimer {
                 if event_linear >= current_linear {
                     let diff = event_linear - current_linear;
                     // Only include if diff fits in u8 (which it always will for real TFT rounds)
-                    let rounds_away = if diff > u8::MAX as u16 { u8::MAX } else { diff as u8 };
+                    let rounds_away = if diff > u8::MAX as u16 {
+                        u8::MAX
+                    } else {
+                        diff as u8
+                    };
                     Some(UpcomingEvent {
                         event_type: et.clone(),
                         description: (*desc).to_string(),
@@ -189,7 +190,11 @@ impl RoundTimer {
         }
     }
 
-    fn compute_priority(state: &GameState, events: &[UpcomingEvent], is_level_behind: bool) -> String {
+    fn compute_priority(
+        state: &GameState,
+        events: &[UpcomingEvent],
+        is_level_behind: bool,
+    ) -> String {
         // Check if augment is very close (0 or 1 round away)
         let augment_soon = events.iter().find(|e| e.event_type == EventType::Augment);
         if let Some(aug_event) = augment_soon {
@@ -212,7 +217,9 @@ impl RoundTimer {
         }
 
         // Carousel soon
-        let carousel_soon = events.iter().find(|e| e.event_type == EventType::Carousel && e.rounds_away <= 2);
+        let carousel_soon = events
+            .iter()
+            .find(|e| e.event_type == EventType::Carousel && e.rounds_away <= 2);
         if carousel_soon.is_some() {
             return "Prepare for carousel — position to win".to_string();
         }
@@ -328,9 +335,17 @@ mod tests {
     fn test_analyze_upcoming_events_sorted_by_rounds_away() {
         let state = make_state(2, 1, 4, 80);
         let awareness = timer().analyze(&state);
-        let distances: Vec<u8> = awareness.upcoming_events.iter().map(|e| e.rounds_away).collect();
+        let distances: Vec<u8> = awareness
+            .upcoming_events
+            .iter()
+            .map(|e| e.rounds_away)
+            .collect();
         for i in 1..distances.len() {
-            assert!(distances[i] >= distances[i - 1], "events not sorted: {:?}", distances);
+            assert!(
+                distances[i] >= distances[i - 1],
+                "events not sorted: {:?}",
+                distances
+            );
         }
     }
 
@@ -380,7 +395,8 @@ mod tests {
         let state = make_state(3, 3, 4, 80);
         let awareness = timer().analyze(&state);
         assert!(
-            awareness.current_priority.contains("Buy XP") || awareness.current_priority.contains("level"),
+            awareness.current_priority.contains("Buy XP")
+                || awareness.current_priority.contains("level"),
             "unexpected priority: {}",
             awareness.current_priority
         );

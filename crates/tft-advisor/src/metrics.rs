@@ -12,33 +12,48 @@ pub struct AdvisorMetrics {
 }
 
 impl AdvisorMetrics {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn record_placement(&mut self, placement: Placement) {
         self.games_played += 1;
         self.total_placement += placement.0 as u32;
         self.placement_history.push(placement.0);
-        if placement.is_top_four() { self.top_four_count += 1; }
-        if placement.0 == 1 { self.first_place_count += 1; }
+        if placement.is_top_four() {
+            self.top_four_count += 1;
+        }
+        if placement.0 == 1 {
+            self.first_place_count += 1;
+        }
     }
 
     pub fn avg_placement(&self) -> f32 {
-        if self.games_played == 0 { return 0.0; }
+        if self.games_played == 0 {
+            return 0.0;
+        }
         self.total_placement as f32 / self.games_played as f32
     }
 
     pub fn top_four_rate(&self) -> f32 {
-        if self.games_played == 0 { return 0.0; }
+        if self.games_played == 0 {
+            return 0.0;
+        }
         self.top_four_count as f32 / self.games_played as f32
     }
 
     pub fn first_place_rate(&self) -> f32 {
-        if self.games_played == 0 { return 0.0; }
+        if self.games_played == 0 {
+            return 0.0;
+        }
         self.first_place_count as f32 / self.games_played as f32
     }
 
     pub fn is_top_four(&self) -> bool {
-        self.placement_history.last().map(|&p| p <= 4).unwrap_or(false)
+        self.placement_history
+            .last()
+            .map(|&p| p <= 4)
+            .unwrap_or(false)
     }
 }
 

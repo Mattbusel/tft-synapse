@@ -14,8 +14,8 @@
 //! - Predicting opponents' bench contents
 //! - Persistence of pool state across rounds
 
-use tft_types::{ChampionId, GameState, TftError};
 use tft_data::Catalog;
+use tft_types::{ChampionId, GameState, TftError};
 
 /// Availability status of a champion in the shared pool.
 #[derive(Debug, Clone, PartialEq)]
@@ -72,11 +72,7 @@ impl PoolTracker {
     ///
     /// # Panics
     /// This function never panics.
-    pub fn track(
-        &self,
-        state: &GameState,
-        catalog: &Catalog,
-    ) -> Result<Vec<PoolEntry>, TftError> {
+    pub fn track(&self, state: &GameState, catalog: &Catalog) -> Result<Vec<PoolEntry>, TftError> {
         let mut entries: Vec<PoolEntry> = catalog
             .champions
             .iter()
@@ -85,11 +81,7 @@ impl PoolTracker {
                 let cost = def.cost.as_u8();
                 let pool_size = pool_size_for_cost(cost);
 
-                let board_count = state
-                    .board
-                    .iter()
-                    .filter(|s| s.champion_id == id)
-                    .count() as u8;
+                let board_count = state.board.iter().filter(|s| s.champion_id == id).count() as u8;
 
                 let bench_count = state
                     .bench
@@ -171,8 +163,8 @@ pub fn pool_status(remaining: u8) -> PoolStatus {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_types::{ChampionSlot, GameState, OpponentSnapshot, ShopSlot, StarLevel};
     use tft_data::Catalog;
+    use tft_types::{ChampionSlot, GameState, OpponentSnapshot, ShopSlot, StarLevel};
 
     fn catalog() -> &'static Catalog {
         Catalog::global().expect("catalog init failed in test")
@@ -185,21 +177,38 @@ mod tests {
     /// Look up a champion id by name from the global catalog.
     fn champ_id(name: &str) -> ChampionId {
         let cat = catalog();
-        let idx = cat.champion_by_name.get(name).copied()
+        let idx = cat
+            .champion_by_name
+            .get(name)
+            .copied()
             .expect("champion not found in test catalog");
         ChampionId(idx as u8)
     }
 
     fn board_slot(id: ChampionId) -> ChampionSlot {
-        ChampionSlot { champion_id: id, star_level: StarLevel::One, items: vec![] }
+        ChampionSlot {
+            champion_id: id,
+            star_level: StarLevel::One,
+            items: vec![],
+        }
     }
 
     fn shop_slot_for(id: ChampionId, sold: bool) -> ShopSlot {
-        ShopSlot { champion_id: Some(id), cost: 1, locked: false, sold }
+        ShopSlot {
+            champion_id: Some(id),
+            cost: 1,
+            locked: false,
+            sold,
+        }
     }
 
     fn empty_shop_slot() -> ShopSlot {
-        ShopSlot { champion_id: None, cost: 1, locked: false, sold: false }
+        ShopSlot {
+            champion_id: None,
+            cost: 1,
+            locked: false,
+            sold: false,
+        }
     }
 
     // ── pool_size_for_cost ────────────────────────────────────────────────────
@@ -270,8 +279,16 @@ mod tests {
         let entries = tracker.track(&empty_state(), cat).expect("track failed");
         // Every entry should have visible_copies == 0 and remaining == pool_size
         for e in &entries {
-            assert_eq!(e.visible_copies, 0, "{} should have 0 visible", e.champion_name);
-            assert_eq!(e.remaining, e.pool_size, "{} remaining should equal pool_size", e.champion_name);
+            assert_eq!(
+                e.visible_copies, 0,
+                "{} should have 0 visible",
+                e.champion_name
+            );
+            assert_eq!(
+                e.remaining, e.pool_size,
+                "{} remaining should equal pool_size",
+                e.champion_name
+            );
         }
     }
 
@@ -292,7 +309,10 @@ mod tests {
         state.board.push(board_slot(jinx));
         state.board.push(board_slot(jinx));
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jinx).expect("Jinx not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jinx)
+            .expect("Jinx not found");
         assert_eq!(e.visible_copies, 2);
         assert_eq!(e.remaining, 16); // pool_size=18, visible=2
     }
@@ -307,7 +327,10 @@ mod tests {
         state.bench.push(Some(board_slot(jinx)));
         state.bench.push(None);
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jinx).expect("Jinx not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jinx)
+            .expect("Jinx not found");
         assert_eq!(e.visible_copies, 2);
     }
 
@@ -320,7 +343,10 @@ mod tests {
         state.shop.push(shop_slot_for(caitlyn, false));
         state.shop.push(shop_slot_for(caitlyn, false));
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == caitlyn).expect("Caitlyn not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == caitlyn)
+            .expect("Caitlyn not found");
         assert_eq!(e.visible_copies, 2);
     }
 
@@ -331,9 +357,12 @@ mod tests {
         let caitlyn = champ_id("Caitlyn");
         let mut state = empty_state();
         state.shop.push(shop_slot_for(caitlyn, false)); // visible
-        state.shop.push(shop_slot_for(caitlyn, true));  // sold — NOT counted
+        state.shop.push(shop_slot_for(caitlyn, true)); // sold — NOT counted
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == caitlyn).expect("Caitlyn not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == caitlyn)
+            .expect("Caitlyn not found");
         assert_eq!(e.visible_copies, 1);
     }
 
@@ -346,7 +375,11 @@ mod tests {
         state.shop.push(empty_shop_slot());
         let entries = tracker.track(&state, cat).expect("track failed");
         for e in &entries {
-            assert_eq!(e.visible_copies, 0, "{} should have 0 visible", e.champion_name);
+            assert_eq!(
+                e.visible_copies, 0,
+                "{} should have 0 visible",
+                e.champion_name
+            );
         }
     }
 
@@ -364,7 +397,10 @@ mod tests {
             active_traits: vec![],
         });
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jayce).expect("Jayce not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jayce)
+            .expect("Jayce not found");
         assert_eq!(e.visible_copies, 2);
         assert_eq!(e.remaining, 8);
     }
@@ -375,18 +411,21 @@ mod tests {
         let tracker = PoolTracker::new();
         let jayce = champ_id("Jayce"); // cost-5, pool=10
         let mut state = empty_state();
-        state.board.push(board_slot(jayce));           // +1
-        state.bench.push(Some(board_slot(jayce)));     // +1
-        state.shop.push(shop_slot_for(jayce, false));  // +1
+        state.board.push(board_slot(jayce)); // +1
+        state.bench.push(Some(board_slot(jayce))); // +1
+        state.shop.push(shop_slot_for(jayce, false)); // +1
         state.opponents.push(OpponentSnapshot {
             player_name: "Alice".to_string(),
             hp: 50,
             level: 9,
-            board_champions: vec![jayce, jayce],       // +2
+            board_champions: vec![jayce, jayce], // +2
             active_traits: vec![],
         });
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jayce).expect("Jayce not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jayce)
+            .expect("Jayce not found");
         assert_eq!(e.visible_copies, 5);
         assert_eq!(e.remaining, 5);
     }
@@ -406,7 +445,10 @@ mod tests {
             active_traits: vec![],
         });
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jayce).expect("Jayce not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jayce)
+            .expect("Jayce not found");
         assert_eq!(e.remaining, 0); // saturating_sub never underflows
     }
 
@@ -420,8 +462,10 @@ mod tests {
             assert!(
                 window[0].remaining <= window[1].remaining,
                 "entries not sorted: {} ({}) > {} ({})",
-                window[0].champion_name, window[0].remaining,
-                window[1].champion_name, window[1].remaining,
+                window[0].champion_name,
+                window[0].remaining,
+                window[1].champion_name,
+                window[1].remaining,
             );
         }
     }
@@ -440,7 +484,10 @@ mod tests {
             active_traits: vec![],
         });
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jayce).expect("Jayce not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jayce)
+            .expect("Jayce not found");
         assert_eq!(e.status, PoolStatus::Exhausted);
     }
 
@@ -458,7 +505,10 @@ mod tests {
             active_traits: vec![],
         });
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jayce).expect("Jayce not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jayce)
+            .expect("Jayce not found");
         assert_eq!(e.status, PoolStatus::Critical);
     }
 
@@ -476,7 +526,10 @@ mod tests {
             active_traits: vec![],
         });
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jayce).expect("Jayce not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jayce)
+            .expect("Jayce not found");
         assert_eq!(e.status, PoolStatus::Low);
     }
 
@@ -486,7 +539,12 @@ mod tests {
         let tracker = PoolTracker::new();
         let entries = tracker.track(&empty_state(), cat).expect("track failed");
         for e in &entries {
-            assert_eq!(e.status, PoolStatus::Available, "{} should be Available", e.champion_name);
+            assert_eq!(
+                e.status,
+                PoolStatus::Available,
+                "{} should be Available",
+                e.champion_name
+            );
         }
     }
 
@@ -507,7 +565,10 @@ mod tests {
         }
         // 3 opponents * 3 each = 9 visible
         let entries = tracker.track(&state, cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == caitlyn).expect("Caitlyn not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == caitlyn)
+            .expect("Caitlyn not found");
         assert_eq!(e.visible_copies, 9);
         assert_eq!(e.remaining, 20);
     }
@@ -530,7 +591,10 @@ mod tests {
         let tracker = PoolTracker::new();
         let caitlyn = champ_id("Caitlyn"); // cost-1
         let entries = tracker.track(&empty_state(), cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == caitlyn).expect("Caitlyn not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == caitlyn)
+            .expect("Caitlyn not found");
         assert_eq!(e.cost, 1);
         assert_eq!(e.pool_size, 29);
     }
@@ -541,7 +605,10 @@ mod tests {
         let tracker = PoolTracker::new();
         let jayce = champ_id("Jayce"); // cost-5
         let entries = tracker.track(&empty_state(), cat).expect("track failed");
-        let e = entries.iter().find(|e| e.champion_id == jayce).expect("Jayce not found");
+        let e = entries
+            .iter()
+            .find(|e| e.champion_id == jayce)
+            .expect("Jayce not found");
         assert_eq!(e.cost, 5);
         assert_eq!(e.pool_size, 10);
     }
@@ -567,7 +634,13 @@ mod tests {
         state.board.push(board_slot(caitlyn));
         state.board.push(board_slot(caitlyn));
         let entries = tracker.track(&state, cat).expect("track failed");
-        let jinx_e = entries.iter().find(|e| e.champion_id == jinx).expect("Jinx not found");
-        assert_eq!(jinx_e.visible_copies, 0, "Jinx should not be affected by Caitlyn copies");
+        let jinx_e = entries
+            .iter()
+            .find(|e| e.champion_id == jinx)
+            .expect("Jinx not found");
+        assert_eq!(
+            jinx_e.visible_copies, 0,
+            "Jinx should not be affected by Caitlyn copies"
+        );
     }
 }

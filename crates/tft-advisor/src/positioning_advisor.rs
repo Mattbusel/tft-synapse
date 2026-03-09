@@ -17,8 +17,8 @@
 //! - Dynamic carousel / bench positioning
 //! - Opponent-specific counter-positioning
 
-use tft_types::{ChampionId, GameState, TftError};
 use tft_data::Catalog;
+use tft_types::{ChampionId, GameState, TftError};
 
 /// High-level role of a champion on the board.
 #[derive(Debug, Clone, PartialEq)]
@@ -121,9 +121,9 @@ impl PositioningAdvisor {
         let mut classified: Vec<(ChampionId, String, PositionRole)> = Vec::new();
 
         for slot in &state.board {
-            let def = catalog.champion_by_id(slot.champion_id).ok_or_else(|| {
-                TftError::ChampionNotFound(format!("{:?}", slot.champion_id))
-            })?;
+            let def = catalog
+                .champion_by_id(slot.champion_id)
+                .ok_or_else(|| TftError::ChampionNotFound(format!("{:?}", slot.champion_id)))?;
             let role = classify_role(def.cost.as_u8(), &def.traits);
             classified.push((slot.champion_id, def.name.clone(), role));
         }
@@ -132,9 +132,9 @@ impl PositioningAdvisor {
         let main_carry_name: Option<String> = {
             let mut best: Option<(u8, &str)> = None;
             for slot in &state.board {
-                let def = catalog.champion_by_id(slot.champion_id).ok_or_else(|| {
-                    TftError::ChampionNotFound(format!("{:?}", slot.champion_id))
-                })?;
+                let def = catalog
+                    .champion_by_id(slot.champion_id)
+                    .ok_or_else(|| TftError::ChampionNotFound(format!("{:?}", slot.champion_id)))?;
                 let cost = def.cost.as_u8();
                 let role = classify_role(cost, &def.traits);
                 if role == PositionRole::Carry {
@@ -161,13 +161,13 @@ impl PositioningAdvisor {
         // with PositionRole::Carry are treated as SecondaryCarry for layout.
 
         let mut frontline_positions = position_sequence(1, &[1, 2, 3, 4, 5, 6, 7]);
-        let mut front2_positions    = position_sequence(2, &[1, 2, 3, 4, 5, 6, 7]);
-        let carry_position          = HexPosition { row: 4, col: 4 };
+        let mut front2_positions = position_sequence(2, &[1, 2, 3, 4, 5, 6, 7]);
+        let carry_position = HexPosition { row: 4, col: 4 };
         let mut secondary_positions = position_sequence(3, &[2, 3, 4, 5, 6]);
-        let mut sec2_positions      = position_sequence(3, &[1, 7, 3, 5, 4]); // overflow
-        let support_cols            = [1u8, 7];
-        let mut support_idx         = 0usize;
-        let mut support_overflow    = position_sequence(4, &[2, 6, 3, 5]); // if > 2 supports
+        let mut sec2_positions = position_sequence(3, &[1, 7, 3, 5, 4]); // overflow
+        let support_cols = [1u8, 7];
+        let mut support_idx = 0usize;
+        let mut support_overflow = position_sequence(4, &[2, 6, 3, 5]); // if > 2 supports
 
         let mut carry_assigned = false;
         let mut frontline_count: u8 = 0;
@@ -193,12 +193,18 @@ impl PositioningAdvisor {
                 PositionRole::Frontline => {
                     frontline_count += 1;
                     let p = next_position(&mut frontline_positions, &mut front2_positions);
-                    (p, "Tank trait — stands at the front to absorb damage".to_string())
+                    (
+                        p,
+                        "Tank trait — stands at the front to absorb damage".to_string(),
+                    )
                 }
                 PositionRole::Carry => {
                     carry_assigned = true;
                     backline_count += 1;
-                    (carry_position.clone(), "Main carry — center-back for maximum peel".to_string())
+                    (
+                        carry_position.clone(),
+                        "Main carry — center-back for maximum peel".to_string(),
+                    )
                 }
                 PositionRole::Support => {
                     backline_count += 1;
@@ -211,7 +217,10 @@ impl PositioningAdvisor {
                             .next()
                             .unwrap_or(HexPosition { row: 4, col: 4 })
                     };
-                    (p, "Support trait — flank position to protect and buff carries".to_string())
+                    (
+                        p,
+                        "Support trait — flank position to protect and buff carries".to_string(),
+                    )
                 }
                 PositionRole::SecondaryCarry => {
                     backline_count += 1;
@@ -259,7 +268,9 @@ impl Default for PositioningAdvisor {
 const FRONTLINE_TRAITS: &[&str] = &["Bruiser", "Guardian", "Colossus", "Juggernaut", "Vanguard"];
 
 /// Carry traits — champions with these are classified Carry.
-const CARRY_TRAITS: &[&str] = &["Gunner", "Arcanist", "Marksman", "Mage", "Duelist", "Sniper"];
+const CARRY_TRAITS: &[&str] = &[
+    "Gunner", "Arcanist", "Marksman", "Mage", "Duelist", "Sniper",
+];
 
 /// Support traits — champions with these are classified Support.
 const SUPPORT_TRAITS: &[&str] = &["Scholar", "Enchanter", "Sage", "Strategist"];
@@ -269,21 +280,27 @@ const SUPPORT_TRAITS: &[&str] = &["Scholar", "Enchanter", "Sage", "Strategist"];
 /// Priority: Carry > Support > Frontline > default by cost.
 pub fn classify_role(cost: u8, traits: &[String]) -> PositionRole {
     let has_carry = traits.iter().any(|t| {
-        CARRY_TRAITS.iter().any(|ct| t.to_ascii_lowercase() == ct.to_ascii_lowercase())
+        CARRY_TRAITS
+            .iter()
+            .any(|ct| t.to_ascii_lowercase() == ct.to_ascii_lowercase())
     });
     if has_carry {
         return PositionRole::Carry;
     }
 
     let has_support = traits.iter().any(|t| {
-        SUPPORT_TRAITS.iter().any(|st| t.to_ascii_lowercase() == st.to_ascii_lowercase())
+        SUPPORT_TRAITS
+            .iter()
+            .any(|st| t.to_ascii_lowercase() == st.to_ascii_lowercase())
     });
     if has_support {
         return PositionRole::Support;
     }
 
     let has_frontline = traits.iter().any(|t| {
-        FRONTLINE_TRAITS.iter().any(|ft| t.to_ascii_lowercase() == ft.to_ascii_lowercase())
+        FRONTLINE_TRAITS
+            .iter()
+            .any(|ft| t.to_ascii_lowercase() == ft.to_ascii_lowercase())
     });
     if has_frontline {
         return PositionRole::Frontline;
@@ -318,8 +335,8 @@ fn next_position(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tft_types::{ChampionSlot, GameState, StarLevel};
     use tft_data::Catalog;
+    use tft_types::{ChampionSlot, GameState, StarLevel};
 
     fn catalog() -> &'static Catalog {
         Catalog::global().expect("catalog init failed in test")
@@ -330,12 +347,19 @@ mod tests {
     }
 
     fn board_slot(id: ChampionId) -> ChampionSlot {
-        ChampionSlot { champion_id: id, star_level: StarLevel::Two, items: vec![] }
+        ChampionSlot {
+            champion_id: id,
+            star_level: StarLevel::Two,
+            items: vec![],
+        }
     }
 
     fn champ_id(name: &str) -> ChampionId {
         let cat = catalog();
-        let idx = cat.champion_by_name.get(name).copied()
+        let idx = cat
+            .champion_by_name
+            .get(name)
+            .copied()
             .expect("champion not found in test");
         ChampionId(idx as u8)
     }
@@ -427,7 +451,9 @@ mod tests {
     fn test_advise_empty_board_returns_default_layout() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let layout = advisor.advise_positions(&empty_state(), cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&empty_state(), cat)
+            .expect("advise failed");
         assert!(layout.positions.is_empty());
         assert_eq!(layout.frontline_count, 0);
         assert_eq!(layout.backline_count, 0);
@@ -441,7 +467,9 @@ mod tests {
         let jinx = champ_id("Jinx"); // Gunner, cost-3
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         assert_eq!(layout.carry_champion.as_deref(), Some("Jinx"));
     }
 
@@ -452,8 +480,14 @@ mod tests {
         let vi = champ_id("Vi"); // Bruiser = Frontline
         let mut state = empty_state();
         state.board.push(board_slot(vi));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
-        let rec = layout.positions.iter().find(|r| r.champion_id == vi).expect("Vi not found");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
+        let rec = layout
+            .positions
+            .iter()
+            .find(|r| r.champion_id == vi)
+            .expect("Vi not found");
         assert_eq!(rec.suggested_position.row, 1, "Frontline should be row 1");
     }
 
@@ -464,8 +498,14 @@ mod tests {
         let jinx = champ_id("Jinx"); // Gunner
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
-        let rec = layout.positions.iter().find(|r| r.champion_id == jinx).expect("Jinx not found");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
+        let rec = layout
+            .positions
+            .iter()
+            .find(|r| r.champion_id == jinx)
+            .expect("Jinx not found");
         assert_eq!(rec.suggested_position.row, 4);
         assert_eq!(rec.suggested_position.col, 4);
     }
@@ -477,8 +517,14 @@ mod tests {
         let janna = champ_id("Janna"); // Scholar = Support
         let mut state = empty_state();
         state.board.push(board_slot(janna));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
-        let rec = layout.positions.iter().find(|r| r.champion_id == janna).expect("Janna not found");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
+        let rec = layout
+            .positions
+            .iter()
+            .find(|r| r.champion_id == janna)
+            .expect("Janna not found");
         assert!(
             rec.suggested_position.col == 1 || rec.suggested_position.col == 7,
             "Support should be at col 1 or 7, got {}",
@@ -490,12 +536,14 @@ mod tests {
     fn test_advise_frontline_count_correct() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let vi = champ_id("Vi");    // Frontline
+        let vi = champ_id("Vi"); // Frontline
         let thresh = champ_id("Thresh"); // Guardian = Frontline
         let mut state = empty_state();
         state.board.push(board_slot(vi));
         state.board.push(board_slot(thresh));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         assert_eq!(layout.frontline_count, 2);
     }
 
@@ -504,11 +552,13 @@ mod tests {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
         let jinx = champ_id("Jinx"); // Carry
-        let lux  = champ_id("Lux");  // Arcanist = Carry
+        let lux = champ_id("Lux"); // Arcanist = Carry
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         state.board.push(board_slot(lux));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         assert_eq!(layout.backline_count, 2);
     }
 
@@ -519,7 +569,9 @@ mod tests {
         let jinx = champ_id("Jinx"); // Carry only
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         assert_eq!(
             layout.layout_warning.as_deref(),
             Some("No frontline — your carry will die immediately")
@@ -531,17 +583,19 @@ mod tests {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
         // 4 frontline, 1 carry (backline) → 4 >= 1*2 → warning
-        let vi     = champ_id("Vi");
+        let vi = champ_id("Vi");
         let thresh = champ_id("Thresh");
-        let poppy  = champ_id("Poppy");
-        let jinx   = champ_id("Jinx");
+        let poppy = champ_id("Poppy");
+        let jinx = champ_id("Jinx");
         let mut state = empty_state();
         // Vi, Thresh, Poppy = frontline; Jinx = carry
         state.board.push(board_slot(vi));
         state.board.push(board_slot(thresh));
         state.board.push(board_slot(poppy));
         state.board.push(board_slot(jinx));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         // frontline_count=3, backline_count=1 → 3 >= 2 → warning
         if layout.frontline_count >= layout.backline_count.saturating_mul(2) {
             assert_eq!(
@@ -556,16 +610,18 @@ mod tests {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
         // 2 frontline, 2 carries
-        let vi    = champ_id("Vi");
+        let vi = champ_id("Vi");
         let thresh = champ_id("Thresh");
-        let jinx  = champ_id("Jinx");
-        let ashe  = champ_id("Ashe"); // Sniper = Carry
+        let jinx = champ_id("Jinx");
+        let ashe = champ_id("Ashe"); // Sniper = Carry
         let mut state = empty_state();
         state.board.push(board_slot(vi));
         state.board.push(board_slot(thresh));
         state.board.push(board_slot(jinx));
         state.board.push(board_slot(ashe));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         assert!(
             layout.layout_warning.is_none(),
             "balanced board should have no warning, got: {:?}",
@@ -577,14 +633,16 @@ mod tests {
     fn test_advise_positions_count_matches_board() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let jinx  = champ_id("Jinx");
-        let vi    = champ_id("Vi");
+        let jinx = champ_id("Jinx");
+        let vi = champ_id("Vi");
         let janna = champ_id("Janna");
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         state.board.push(board_slot(vi));
         state.board.push(board_slot(janna));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         assert_eq!(layout.positions.len(), 3);
     }
 
@@ -595,9 +653,15 @@ mod tests {
         let jinx = champ_id("Jinx");
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
-        let layout = advisor.advise_positions(&state, cat).expect("advise failed");
+        let layout = advisor
+            .advise_positions(&state, cat)
+            .expect("advise failed");
         for rec in &layout.positions {
-            assert!(!rec.reason.is_empty(), "reason should not be empty for {}", rec.champion_name);
+            assert!(
+                !rec.reason.is_empty(),
+                "reason should not be empty for {}",
+                rec.champion_name
+            );
         }
     }
 
@@ -606,8 +670,12 @@ mod tests {
         let cat = catalog();
         let a = PositioningAdvisor::new();
         let b = PositioningAdvisor::default();
-        let r1 = a.advise_positions(&empty_state(), cat).expect("advise failed");
-        let r2 = b.advise_positions(&empty_state(), cat).expect("advise failed");
+        let r1 = a
+            .advise_positions(&empty_state(), cat)
+            .expect("advise failed");
+        let r2 = b
+            .advise_positions(&empty_state(), cat)
+            .expect("advise failed");
         assert_eq!(r1.positions.len(), r2.positions.len());
     }
 }

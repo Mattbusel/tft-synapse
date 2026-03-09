@@ -1,19 +1,24 @@
 //! Top status bar: connection status, round info.
 
-use egui::{Ui, RichText};
-use tft_types::GameState;
-use crate::theme;
 use crate::state::ConnectionStatus;
+use crate::theme;
+use egui::{RichText, Ui};
+use tft_types::GameState;
 
 pub fn render(ui: &mut Ui, game_state: Option<&GameState>, status: Option<&ConnectionStatus>) {
     ui.horizontal(|ui| {
-        ui.label(RichText::new("TFT Synapse").color(theme::ACCENT_GOLD).strong());
+        ui.label(
+            RichText::new("TFT Synapse")
+                .color(theme::ACCENT_GOLD)
+                .strong(),
+        );
         ui.separator();
 
         if let Some(state) = game_state {
-            ui.label(RichText::new(
-                format!("Stage {}-{}", state.round.stage, state.round.round)
-            ).color(theme::TEXT_PRIMARY));
+            ui.label(
+                RichText::new(format!("Stage {}-{}", state.round.stage, state.round.round))
+                    .color(theme::TEXT_PRIMARY),
+            );
             ui.label(RichText::new(format!("HP: {}", state.hp)).color(theme::TEXT_PRIMARY));
             ui.label(RichText::new(format!("Gold: {}", state.gold)).color(theme::ACCENT_GOLD));
             ui.label(RichText::new(format!("Level: {}", state.level)).color(theme::TEXT_PRIMARY));

@@ -1,5 +1,8 @@
 use serde::Deserialize;
-use tft_types::{AugmentDef, AugmentId, AugmentTier, ChampionDef, ChampionId, Cost, ItemDef, ItemId, ItemCategory, TftError};
+use tft_types::{
+    AugmentDef, AugmentId, AugmentTier, ChampionDef, ChampionId, Cost, ItemCategory, ItemDef,
+    ItemId, TftError,
+};
 
 #[derive(Deserialize)]
 struct RawAugmentsFile {
@@ -47,45 +50,51 @@ pub struct RawTrait {
 fn parse_tier(s: &str) -> Option<AugmentTier> {
     match s {
         "S+" => Some(AugmentTier::SPlus),
-        "S"  => Some(AugmentTier::S),
+        "S" => Some(AugmentTier::S),
         "S-" => Some(AugmentTier::SMinus),
         "A+" => Some(AugmentTier::APlus),
-        "A"  => Some(AugmentTier::A),
+        "A" => Some(AugmentTier::A),
         "A-" => Some(AugmentTier::AMinus),
         "B+" => Some(AugmentTier::BPlus),
-        "B"  => Some(AugmentTier::B),
+        "B" => Some(AugmentTier::B),
         "B-" => Some(AugmentTier::BMinus),
-        "C"  => Some(AugmentTier::C),
-        _    => None,
+        "C" => Some(AugmentTier::C),
+        _ => None,
     }
 }
 
 pub fn parse_augments(yaml: &str) -> Result<Vec<AugmentDef>, TftError> {
     let raw: RawAugmentsFile = serde_yaml::from_str(yaml)
         .map_err(|e| TftError::Catalog(format!("Failed to parse augments.yaml: {}", e)))?;
-    let defs = raw.augments.into_iter().enumerate().map(|(i, a)| {
-        AugmentDef {
+    let defs = raw
+        .augments
+        .into_iter()
+        .enumerate()
+        .map(|(i, a)| AugmentDef {
             id: AugmentId(i as u8),
             name: a.name,
             tier: a.tier.as_deref().and_then(parse_tier),
             base_score: a.base_score,
             tags: a.tags,
-        }
-    }).collect();
+        })
+        .collect();
     Ok(defs)
 }
 
 pub fn parse_champions(yaml: &str) -> Result<Vec<ChampionDef>, TftError> {
     let raw: RawChampionsFile = serde_yaml::from_str(yaml)
         .map_err(|e| TftError::Catalog(format!("Failed to parse champions.yaml: {}", e)))?;
-    let defs = raw.champions.into_iter().enumerate().map(|(i, c)| {
-        ChampionDef {
+    let defs = raw
+        .champions
+        .into_iter()
+        .enumerate()
+        .map(|(i, c)| ChampionDef {
             id: ChampionId(i as u8),
             name: c.name,
             cost: Cost::from_u8(c.cost).unwrap_or(Cost::One),
             traits: c.traits,
-        }
-    }).collect();
+        })
+        .collect();
     Ok(defs)
 }
 
@@ -120,15 +129,18 @@ fn parse_item_category(s: &str) -> ItemCategory {
 pub fn parse_items(yaml: &str) -> Result<Vec<ItemDef>, TftError> {
     let raw: RawItemsFile = serde_yaml::from_str(yaml)
         .map_err(|e| TftError::Catalog(format!("Failed to parse items.yaml: {}", e)))?;
-    let defs = raw.items.into_iter().enumerate().map(|(i, item)| {
-        ItemDef {
+    let defs = raw
+        .items
+        .into_iter()
+        .enumerate()
+        .map(|(i, item)| ItemDef {
             id: ItemId(i as u8),
             name: item.name,
             category: parse_item_category(&item.category),
             is_component: item.is_component,
             tags: item.tags,
-        }
-    }).collect();
+        })
+        .collect();
     Ok(defs)
 }
 
@@ -171,8 +183,12 @@ mod tests {
     fn test_all_champion_costs_valid() {
         let defs = parse_champions(CHAMPIONS_YAML).expect("parse failed in test");
         for def in &defs {
-            assert!(def.cost.as_u8() >= 1 && def.cost.as_u8() <= 5,
-                "invalid cost {} for {}", def.cost.as_u8(), def.name);
+            assert!(
+                def.cost.as_u8() >= 1 && def.cost.as_u8() <= 5,
+                "invalid cost {} for {}",
+                def.cost.as_u8(),
+                def.name
+            );
         }
     }
 
@@ -188,7 +204,11 @@ mod tests {
     fn test_all_traits_have_breakpoints() {
         let traits = parse_traits(TRAITS_YAML).expect("parse failed in test");
         for t in &traits {
-            assert!(!t.breakpoints.is_empty(), "trait {} has no breakpoints", t.name);
+            assert!(
+                !t.breakpoints.is_empty(),
+                "trait {} has no breakpoints",
+                t.name
+            );
         }
     }
 
@@ -234,7 +254,10 @@ mod tests {
 
     #[test]
     fn test_parse_item_category_known_values() {
-        assert_eq!(parse_item_category("AttackDamage"), ItemCategory::AttackDamage);
+        assert_eq!(
+            parse_item_category("AttackDamage"),
+            ItemCategory::AttackDamage
+        );
         assert_eq!(parse_item_category("Tank"), ItemCategory::Tank);
         assert_eq!(parse_item_category("unknown"), ItemCategory::Utility);
     }

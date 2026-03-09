@@ -39,7 +39,10 @@ pub struct GameSession {
 
 impl GameSession {
     pub fn new(game_id: u64) -> Self {
-        Self { decisions: Vec::new(), game_id }
+        Self {
+            decisions: Vec::new(),
+            game_id,
+        }
     }
 
     pub fn record_decision(
@@ -56,13 +59,22 @@ impl GameSession {
             chosen,
             score,
         };
-        info!("Decision recorded: chose {:?} with score {:.3} at {}-{}", chosen, score, state.round.stage, state.round.round);
+        info!(
+            "Decision recorded: chose {:?} with score {:.3} at {}-{}",
+            chosen, score, state.round.stage, state.round.round
+        );
         self.decisions.push(decision);
     }
 
-    pub fn decisions(&self) -> &[AugmentDecision] { &self.decisions }
-    pub fn decision_count(&self) -> usize { self.decisions.len() }
-    pub fn game_id(&self) -> u64 { self.game_id }
+    pub fn decisions(&self) -> &[AugmentDecision] {
+        &self.decisions
+    }
+    pub fn decision_count(&self) -> usize {
+        self.decisions.len()
+    }
+    pub fn game_id(&self) -> u64 {
+        self.game_id
+    }
 
     /// Report chosen augment indices for ML training.
     pub fn chosen_augment_indices(&self) -> Vec<u8> {
@@ -82,34 +94,39 @@ impl GameSession {
     /// # Panics
     /// This function never panics.
     pub fn review_summary(&self, catalog: &Catalog) -> Vec<ReviewEntry> {
-        self.decisions.iter().map(|d| {
-            let chosen_name = catalog
-                .augment_by_id(d.chosen)
-                .map(|a| a.name.clone())
-                .unwrap_or_else(|| format!("Augment#{}", d.chosen.0));
+        self.decisions
+            .iter()
+            .map(|d| {
+                let chosen_name = catalog
+                    .augment_by_id(d.chosen)
+                    .map(|a| a.name.clone())
+                    .unwrap_or_else(|| format!("Augment#{}", d.chosen.0));
 
-            let alternatives: Vec<(String, f32)> = d.offered.iter()
-                .filter(|&&id| id != d.chosen)
-                .map(|&id| {
-                    let name = catalog
-                        .augment_by_id(id)
-                        .map(|a| a.name.clone())
-                        .unwrap_or_else(|| format!("Augment#{}", id.0));
-                    (name, 0.0f32)
-                })
-                .collect();
+                let alternatives: Vec<(String, f32)> = d
+                    .offered
+                    .iter()
+                    .filter(|&&id| id != d.chosen)
+                    .map(|&id| {
+                        let name = catalog
+                            .augment_by_id(id)
+                            .map(|a| a.name.clone())
+                            .unwrap_or_else(|| format!("Augment#{}", id.0));
+                        (name, 0.0f32)
+                    })
+                    .collect();
 
-            let was_top_pick = d.score >= 0.7;
+                let was_top_pick = d.score >= 0.7;
 
-            ReviewEntry {
-                stage: d.round_stage,
-                round: d.round_number,
-                chosen_name,
-                chosen_score: d.score,
-                alternatives,
-                was_top_pick,
-            }
-        }).collect()
+                ReviewEntry {
+                    stage: d.round_stage,
+                    round: d.round_number,
+                    chosen_name,
+                    chosen_score: d.score,
+                    alternatives,
+                    was_top_pick,
+                }
+            })
+            .collect()
     }
 }
 
@@ -120,7 +137,10 @@ mod tests {
     use tft_types::{AugmentId, GameState, RoundInfo};
 
     fn make_state(stage: u8, round: u8) -> GameState {
-        GameState { round: RoundInfo { stage, round }, ..Default::default() }
+        GameState {
+            round: RoundInfo { stage, round },
+            ..Default::default()
+        }
     }
 
     #[test]
@@ -244,10 +264,14 @@ mod tests {
         let entries = session.review_summary(global_catalog());
         // Alternatives should not contain the chosen id
         let catalog = global_catalog();
-        let chosen_name = catalog.augment_by_id(AugmentId(0))
+        let chosen_name = catalog
+            .augment_by_id(AugmentId(0))
             .map(|a| a.name.clone())
             .unwrap_or_else(|| "Augment#0".to_string());
-        assert!(!entries[0].alternatives.iter().any(|(n, _)| n == &chosen_name));
+        assert!(!entries[0]
+            .alternatives
+            .iter()
+            .any(|(n, _)| n == &chosen_name));
         assert_eq!(entries[0].alternatives.len(), 2);
     }
 
@@ -256,7 +280,12 @@ mod tests {
         let mut session = GameSession::new(1);
         for i in 0..3u8 {
             let state = make_state(2 + i, 1);
-            session.record_decision(&state, vec![AugmentId(i)], AugmentId(i), 0.5 + i as f32 * 0.1);
+            session.record_decision(
+                &state,
+                vec![AugmentId(i)],
+                AugmentId(i),
+                0.5 + i as f32 * 0.1,
+            );
         }
         let entries = session.review_summary(global_catalog());
         assert_eq!(entries.len(), 3);

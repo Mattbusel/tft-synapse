@@ -1,8 +1,8 @@
+use crate::embed::{AUGMENTS_YAML, CHAMPIONS_YAML, ITEMS_YAML, TRAITS_YAML};
+use crate::loader::{parse_augments, parse_champions, parse_items, parse_traits, RawTrait};
 use std::collections::HashMap;
 use std::sync::OnceLock;
 use tft_types::{AugmentDef, AugmentId, ChampionDef, ChampionId, ItemDef, ItemId, TftError};
-use crate::loader::{parse_augments, parse_champions, parse_traits, parse_items, RawTrait};
-use crate::embed::{AUGMENTS_YAML, CHAMPIONS_YAML, TRAITS_YAML, ITEMS_YAML};
 
 /// JSON schema for the hot-reload catalog file at `~/.tft-synapse/catalog.json`.
 #[derive(serde::Deserialize)]
@@ -33,16 +33,37 @@ impl Catalog {
         let traits = parse_traits(TRAITS_YAML)?;
         let items = parse_items(ITEMS_YAML)?;
 
-        let augment_by_name = augments.iter().enumerate()
-            .map(|(i, a)| (a.name.clone(), i)).collect();
-        let champion_by_name = champions.iter().enumerate()
-            .map(|(i, c)| (c.name.clone(), i)).collect();
-        let trait_by_name = traits.iter().enumerate()
-            .map(|(i, t)| (t.name.clone(), i)).collect();
-        let item_by_name = items.iter().enumerate()
-            .map(|(i, item)| (item.name.clone(), i)).collect();
+        let augment_by_name = augments
+            .iter()
+            .enumerate()
+            .map(|(i, a)| (a.name.clone(), i))
+            .collect();
+        let champion_by_name = champions
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (c.name.clone(), i))
+            .collect();
+        let trait_by_name = traits
+            .iter()
+            .enumerate()
+            .map(|(i, t)| (t.name.clone(), i))
+            .collect();
+        let item_by_name = items
+            .iter()
+            .enumerate()
+            .map(|(i, item)| (item.name.clone(), i))
+            .collect();
 
-        Ok(Catalog { augments, augment_by_name, champions, champion_by_name, traits, trait_by_name, items, item_by_name })
+        Ok(Catalog {
+            augments,
+            augment_by_name,
+            champions,
+            champion_by_name,
+            traits,
+            trait_by_name,
+            items,
+            item_by_name,
+        })
     }
 
     /// Load catalog from a JSON file at `path`.
@@ -71,18 +92,32 @@ impl Catalog {
         let json: CatalogJson = serde_json::from_str(&content)
             .map_err(|e| TftError::Catalog(format!("Failed to parse catalog.json: {}", e)))?;
 
-        let augment_by_name = json.augments.iter().enumerate()
-            .map(|(i, a)| (a.name.clone(), i)).collect();
-        let champion_by_name = json.champions.iter().enumerate()
-            .map(|(i, c)| (c.name.clone(), i)).collect();
+        let augment_by_name = json
+            .augments
+            .iter()
+            .enumerate()
+            .map(|(i, a)| (a.name.clone(), i))
+            .collect();
+        let champion_by_name = json
+            .champions
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (c.name.clone(), i))
+            .collect();
 
         let traits = parse_traits(TRAITS_YAML)?;
-        let trait_by_name = traits.iter().enumerate()
-            .map(|(i, t)| (t.name.clone(), i)).collect();
+        let trait_by_name = traits
+            .iter()
+            .enumerate()
+            .map(|(i, t)| (t.name.clone(), i))
+            .collect();
 
         let items = parse_items(ITEMS_YAML)?;
-        let item_by_name = items.iter().enumerate()
-            .map(|(i, item)| (item.name.clone(), i)).collect();
+        let item_by_name = items
+            .iter()
+            .enumerate()
+            .map(|(i, item)| (item.name.clone(), i))
+            .collect();
 
         Ok(Catalog {
             augments: json.augments,
@@ -102,8 +137,8 @@ impl Catalog {
     /// if the file does not exist or fails to parse.
     pub fn global() -> Result<&'static Catalog, TftError> {
         let cell = GLOBAL_CATALOG.get_or_init(|| {
-            let json_path = dirs_next::home_dir()
-                .map(|h| h.join(".tft-synapse").join("catalog.json"));
+            let json_path =
+                dirs_next::home_dir().map(|h| h.join(".tft-synapse").join("catalog.json"));
             if let Some(ref path) = json_path {
                 if path.exists() {
                     if let Ok(c) = Catalog::from_json_file(path) {
@@ -116,8 +151,12 @@ impl Catalog {
         cell.as_ref().map_err(|e| TftError::Catalog(e.clone()))
     }
 
-    pub fn augment_count(&self) -> usize { self.augments.len() }
-    pub fn champion_count(&self) -> usize { self.champions.len() }
+    pub fn augment_count(&self) -> usize {
+        self.augments.len()
+    }
+    pub fn champion_count(&self) -> usize {
+        self.champions.len()
+    }
 
     pub fn augment_by_id(&self, id: AugmentId) -> Option<&AugmentDef> {
         self.augments.get(id.0 as usize)
@@ -131,7 +170,9 @@ impl Catalog {
         self.augment_by_name.get(name).map(|&i| AugmentId(i as u8))
     }
 
-    pub fn item_count(&self) -> usize { self.items.len() }
+    pub fn item_count(&self) -> usize {
+        self.items.len()
+    }
 
     pub fn item_by_id(&self, id: ItemId) -> Option<&ItemDef> {
         self.items.get(id.0 as usize)
@@ -212,7 +253,10 @@ mod tests {
         let a = Catalog::global().expect("global catalog failed in test");
         let b = Catalog::global().expect("global catalog failed in test");
         assert_eq!(a.augment_count(), b.augment_count());
-        assert!(std::ptr::eq(a, b), "global() should return the same pointer");
+        assert!(
+            std::ptr::eq(a, b),
+            "global() should return the same pointer"
+        );
     }
 
     #[test]
@@ -284,13 +328,19 @@ mod tests {
                 "cost": "One",
                 "traits": ["Gunner"]
             }]
-        }).to_string()
+        })
+        .to_string()
     }
 
     #[test]
     fn test_from_json_file_valid_file_returns_catalog() {
         let mut tmp = tempfile::NamedTempFile::new().expect("tempfile failed in test");
-        write!(tmp, "{}", make_catalog_json_str("Test Augment", "TestChamp")).expect("write failed in test");
+        write!(
+            tmp,
+            "{}",
+            make_catalog_json_str("Test Augment", "TestChamp")
+        )
+        .expect("write failed in test");
         let result = Catalog::from_json_file(tmp.path());
         assert!(result.is_ok(), "from_json_file failed: {:?}", result.err());
     }
@@ -298,7 +348,12 @@ mod tests {
     #[test]
     fn test_from_json_file_augments_loaded_correctly() {
         let mut tmp = tempfile::NamedTempFile::new().expect("tempfile failed in test");
-        write!(tmp, "{}", make_catalog_json_str("Custom Augment", "SomeChamp")).expect("write failed in test");
+        write!(
+            tmp,
+            "{}",
+            make_catalog_json_str("Custom Augment", "SomeChamp")
+        )
+        .expect("write failed in test");
         let catalog = Catalog::from_json_file(tmp.path()).expect("from_json_file failed in test");
         assert_eq!(catalog.augment_count(), 1);
         assert_eq!(catalog.augments[0].name, "Custom Augment");
@@ -307,7 +362,8 @@ mod tests {
     #[test]
     fn test_from_json_file_champions_loaded_correctly() {
         let mut tmp = tempfile::NamedTempFile::new().expect("tempfile failed in test");
-        write!(tmp, "{}", make_catalog_json_str("SomeAug", "MyChampion")).expect("write failed in test");
+        write!(tmp, "{}", make_catalog_json_str("SomeAug", "MyChampion"))
+            .expect("write failed in test");
         let catalog = Catalog::from_json_file(tmp.path()).expect("from_json_file failed in test");
         assert_eq!(catalog.champion_count(), 1);
         assert_eq!(catalog.champions[0].name, "MyChampion");
@@ -316,7 +372,8 @@ mod tests {
     #[test]
     fn test_from_json_file_augment_by_name_lookup_works() {
         let mut tmp = tempfile::NamedTempFile::new().expect("tempfile failed in test");
-        write!(tmp, "{}", make_catalog_json_str("LookupAug", "Champ")).expect("write failed in test");
+        write!(tmp, "{}", make_catalog_json_str("LookupAug", "Champ"))
+            .expect("write failed in test");
         let catalog = Catalog::from_json_file(tmp.path()).expect("from_json_file failed in test");
         let id = catalog.augment_id_by_name("LookupAug");
         assert!(id.is_some());
@@ -342,7 +399,8 @@ mod tests {
 
     #[test]
     fn test_from_json_file_nonexistent_path_returns_err() {
-        let result = Catalog::from_json_file(std::path::Path::new("/nonexistent/path/catalog.json"));
+        let result =
+            Catalog::from_json_file(std::path::Path::new("/nonexistent/path/catalog.json"));
         assert!(result.is_err());
         if let Err(TftError::Catalog(msg)) = result {
             assert!(msg.contains("Failed to read"));
@@ -369,12 +427,12 @@ mod tests {
                 { "id": 2, "name": "AugC", "tier": null, "base_score": 0.3, "tags": [] },
             ],
             "champions": []
-        }).to_string();
+        })
+        .to_string();
         let mut tmp = tempfile::NamedTempFile::new().expect("tempfile failed in test");
         write!(tmp, "{}", json).expect("write failed in test");
         let catalog = Catalog::from_json_file(tmp.path()).expect("from_json_file failed in test");
         assert_eq!(catalog.augment_count(), 3);
         assert!(catalog.augment_id_by_name("AugB").is_some());
     }
-
 }

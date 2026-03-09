@@ -9,8 +9,7 @@
 pub const CURRENT_VERSION: &str = "0.4.0";
 
 /// GitHub Releases API endpoint for the latest release.
-pub const RELEASES_API: &str =
-    "https://api.github.com/repos/Mattbusel/tft-synapse/releases/latest";
+pub const RELEASES_API: &str = "https://api.github.com/repos/Mattbusel/tft-synapse/releases/latest";
 
 /// Information about a newer available release.
 #[derive(Debug, Clone)]
@@ -43,10 +42,7 @@ pub fn check_for_update_at(url: &str) -> Option<UpdateInfo> {
 
     let response = client
         .get(url)
-        .header(
-            "User-Agent",
-            format!("tft-synapse/{}", CURRENT_VERSION),
-        )
+        .header("User-Agent", format!("tft-synapse/{}", CURRENT_VERSION))
         .send()
         .ok()?;
 
@@ -101,7 +97,10 @@ mod tests {
 
     #[test]
     fn test_parse_update_info_same_version_no_update() {
-        let json = make_release_json(&format!("v{}", CURRENT_VERSION), "https://github.com/releases");
+        let json = make_release_json(
+            &format!("v{}", CURRENT_VERSION),
+            "https://github.com/releases",
+        );
         let info = parse_update_info(&json).expect("parse failed in test");
         assert_eq!(info.latest_version, CURRENT_VERSION);
         assert!(!info.update_available);
@@ -155,7 +154,11 @@ mod tests {
         let parts: Vec<&str> = CURRENT_VERSION.split('.').collect();
         assert_eq!(parts.len(), 3, "CURRENT_VERSION should be X.Y.Z format");
         for part in parts {
-            assert!(part.parse::<u32>().is_ok(), "each part should be numeric: {}", part);
+            assert!(
+                part.parse::<u32>().is_ok(),
+                "each part should be numeric: {}",
+                part
+            );
         }
     }
 

@@ -1,8 +1,8 @@
 //! UI state: what the application is currently showing.
 
-use tft_types::GameState;
-use tft_advisor::{FullRecommendation, Recommendation};
 use crate::overlay::OverlayConfig;
+use tft_advisor::{FullRecommendation, Recommendation};
+use tft_types::GameState;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ConnectionStatus {
@@ -44,7 +44,9 @@ pub struct UiState {
 }
 
 impl UiState {
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     pub fn set_connected(&mut self, status: ConnectionStatus) {
         self.connection_status = Some(status);
@@ -89,7 +91,10 @@ mod tests {
     #[test]
     fn test_connection_status_display() {
         assert_eq!(format!("{}", ConnectionStatus::Connected), "Connected");
-        assert_eq!(format!("{}", ConnectionStatus::Disconnected), "Disconnected");
+        assert_eq!(
+            format!("{}", ConnectionStatus::Disconnected),
+            "Disconnected"
+        );
         assert_eq!(format!("{}", ConnectionStatus::Manual), "Manual Mode");
     }
 

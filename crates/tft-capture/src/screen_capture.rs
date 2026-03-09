@@ -13,8 +13,8 @@
 //! - Precise OCR / text recognition (pixel brightness heuristics only)
 //! - Cross-resolution normalisation beyond the 1080p reference layout
 
-use tft_types::{GameState, RoundInfo, ShopSlot, TftError};
 use crate::reader::{GameStateReader, ReaderMode};
+use tft_types::{GameState, RoundInfo, ShopSlot, TftError};
 
 /// Screen-capture based fallback reader.
 /// Uses Win32 BitBlt on Windows; no-ops gracefully on other platforms.
@@ -33,11 +33,19 @@ impl ScreenCaptureReader {
     pub fn new() -> Self {
         #[cfg(target_os = "windows")]
         {
-            Self { width: 1920, height: 1080, enabled: true }
+            Self {
+                width: 1920,
+                height: 1080,
+                enabled: true,
+            }
         }
         #[cfg(not(target_os = "windows"))]
         {
-            Self { width: 0, height: 0, enabled: false }
+            Self {
+                width: 0,
+                height: 0,
+                enabled: false,
+            }
         }
     }
 
@@ -70,9 +78,9 @@ impl ScreenCaptureReader {
     fn capture_screen_windows(&self) -> Result<Vec<u8>, TftError> {
         use windows::Win32::Foundation::HWND;
         use windows::Win32::Graphics::Gdi::{
-            BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject,
-            GetDIBits, GetDC, ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER,
-            DIB_RGB_COLORS, SRCCOPY,
+            BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC,
+            GetDIBits, ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER, DIB_RGB_COLORS,
+            SRCCOPY,
         };
 
         let w = self.width as i32;
@@ -93,10 +101,13 @@ impl ScreenCaptureReader {
 
             let hbm = CreateCompatibleBitmap(hdc_screen, w, h);
             if hbm.is_invalid() {
-                DeleteDC(hdc_mem).ok()
+                DeleteDC(hdc_mem)
+                    .ok()
                     .map_err(|_| TftError::Capture("DeleteDC failed".to_string()))?;
                 ReleaseDC(HWND(std::ptr::null_mut()), hdc_screen);
-                return Err(TftError::Capture("CreateCompatibleBitmap failed".to_string()));
+                return Err(TftError::Capture(
+                    "CreateCompatibleBitmap failed".to_string(),
+                ));
             }
 
             let old_obj = SelectObject(hdc_mem, hbm);
@@ -308,7 +319,12 @@ impl GameStateReader for ScreenCaptureReader {
             board: vec![],
             bench: vec![None; 9],
             shop: (0..5)
-                .map(|_| ShopSlot { champion_id: None, cost: 0, locked: false, sold: false })
+                .map(|_| ShopSlot {
+                    champion_id: None,
+                    cost: 0,
+                    locked: false,
+                    sold: false,
+                })
                 .collect(),
             gold,
             hp,
@@ -487,7 +503,11 @@ mod tests {
         let y1 = h;
         fill_rect(&mut pixels, w, x0, y0, x1, y1, [20, 200, 220, 255]);
         let gold = ScreenCaptureReader::parse_gold(&pixels, w, h);
-        assert!(gold > 0, "expected gold > 0 for yellow HUD pixels, got {}", gold);
+        assert!(
+            gold > 0,
+            "expected gold > 0 for yellow HUD pixels, got {}",
+            gold
+        );
     }
 
     #[test]
@@ -516,7 +536,9 @@ mod tests {
     #[test]
     fn test_capture_screen_non_windows_returns_platform_error() {
         let r = ScreenCaptureReader::new();
-        let err = r.capture_screen().expect_err("expected error on non-Windows");
+        let err = r
+            .capture_screen()
+            .expect_err("expected error on non-Windows");
         assert!(
             matches!(err, TftError::PlatformNotSupported(_)),
             "unexpected error variant: {:?}",

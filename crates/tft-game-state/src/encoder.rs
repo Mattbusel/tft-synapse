@@ -119,7 +119,10 @@ mod tests {
         let active = vec![("Arcanist".to_string(), 9u8)];
         let mut v = Vec::new();
         encode_traits(&mut v, &active, &trait_index, 1);
-        assert!((v[0] - 1.0).abs() < f32::EPSILON, "9/9 should normalize to 1.0");
+        assert!(
+            (v[0] - 1.0).abs() < f32::EPSILON,
+            "9/9 should normalize to 1.0"
+        );
     }
 
     #[test]

@@ -4,13 +4,13 @@
 mod args;
 mod updater;
 
+use clap::Parser;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
-use clap::Parser;
-use tracing::{info, warn};
 use tft_capture::auto_detect_reader;
-use tft_ui::{TftSynapseApp, app::AppMessage};
+use tft_ui::{app::AppMessage, TftSynapseApp};
+use tracing::{info, warn};
 
 fn main() {
     let args = args::Args::parse();
@@ -18,13 +18,11 @@ fn main() {
     let level = match args.log_level.as_str() {
         "trace" => tracing::Level::TRACE,
         "debug" => tracing::Level::DEBUG,
-        "warn"  => tracing::Level::WARN,
+        "warn" => tracing::Level::WARN,
         "error" => tracing::Level::ERROR,
-        _       => tracing::Level::INFO,
+        _ => tracing::Level::INFO,
     };
-    tracing_subscriber::fmt()
-        .with_max_level(level)
-        .init();
+    tracing_subscriber::fmt().with_max_level(level).init();
 
     info!("TFT Synapse v0.2.0 starting");
 

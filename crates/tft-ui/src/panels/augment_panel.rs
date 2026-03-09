@@ -1,8 +1,8 @@
 //! Renders the augment recommendation panel.
 
-use egui::{Ui, RichText};
-use tft_advisor::Recommendation;
 use crate::theme;
+use egui::{RichText, Ui};
+use tft_advisor::Recommendation;
 
 /// Render the augment recommendation panel.
 pub fn render(ui: &mut Ui, recommendation: Option<&Recommendation>) {
@@ -11,8 +11,10 @@ pub fn render(ui: &mut Ui, recommendation: Option<&Recommendation>) {
 
     match recommendation {
         None => {
-            ui.label(RichText::new("Waiting for augment selection phase...")
-                .color(theme::TEXT_SECONDARY));
+            ui.label(
+                RichText::new("Waiting for augment selection phase...")
+                    .color(theme::TEXT_SECONDARY),
+            );
         }
         Some(rec) => {
             ui.label(RichText::new("Recommended picks:").color(theme::TEXT_PRIMARY));
@@ -27,7 +29,11 @@ pub fn render(ui: &mut Ui, recommendation: Option<&Recommendation>) {
 
                 ui.group(|ui| {
                     ui.horizontal(|ui| {
-                        let rank_color = if i == 0 { theme::ACCENT_GOLD } else { theme::TEXT_SECONDARY };
+                        let rank_color = if i == 0 {
+                            theme::ACCENT_GOLD
+                        } else {
+                            theme::TEXT_SECONDARY
+                        };
                         ui.label(RichText::new(rank_label).color(rank_color).strong());
                         ui.add_space(8.0);
                         ui.label(RichText::new(&aug.reasoning).color(theme::TEXT_PRIMARY));
@@ -45,10 +51,13 @@ pub fn render(ui: &mut Ui, recommendation: Option<&Recommendation>) {
                         egui::vec2(bar_width * aug.score.clamp(0.0, 1.0), bar_height),
                     );
                     ui.painter().rect_filled(rect, 2.0, theme::BG_CARD);
-                    ui.painter().rect_filled(filled, 2.0, theme::score_color(aug.score));
-                    ui.label(RichText::new(format!("{:.0}%", aug.score * 100.0))
-                        .color(theme::score_color(aug.score))
-                        .small());
+                    ui.painter()
+                        .rect_filled(filled, 2.0, theme::score_color(aug.score));
+                    ui.label(
+                        RichText::new(format!("{:.0}%", aug.score * 100.0))
+                            .color(theme::score_color(aug.score))
+                            .small(),
+                    );
                 });
                 ui.add_space(4.0);
             }
