@@ -267,29 +267,23 @@ const SUPPORT_TRAITS: &[&str] = &["Scholar", "Enchanter", "Sage", "Strategist"];
 ///
 /// Priority: Carry > Support > Frontline > default by cost.
 pub fn classify_role(cost: u8, traits: &[String]) -> PositionRole {
-    let has_carry = traits.iter().any(|t| {
-        CARRY_TRAITS
-            .iter()
-            .any(|ct| t.eq_ignore_ascii_case(ct))
-    });
+    let has_carry = traits
+        .iter()
+        .any(|t| CARRY_TRAITS.iter().any(|ct| t.eq_ignore_ascii_case(ct)));
     if has_carry {
         return PositionRole::Carry;
     }
 
-    let has_support = traits.iter().any(|t| {
-        SUPPORT_TRAITS
-            .iter()
-            .any(|st| t.eq_ignore_ascii_case(st))
-    });
+    let has_support = traits
+        .iter()
+        .any(|t| SUPPORT_TRAITS.iter().any(|st| t.eq_ignore_ascii_case(st)));
     if has_support {
         return PositionRole::Support;
     }
 
-    let has_frontline = traits.iter().any(|t| {
-        FRONTLINE_TRAITS
-            .iter()
-            .any(|ft| t.eq_ignore_ascii_case(ft))
-    });
+    let has_frontline = traits
+        .iter()
+        .any(|t| FRONTLINE_TRAITS.iter().any(|ft| t.eq_ignore_ascii_case(ft)));
     if has_frontline {
         return PositionRole::Frontline;
     }
