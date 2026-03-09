@@ -89,11 +89,11 @@ mod tests {
 
     #[test]
     fn test_parse_update_info_with_newer_version() {
-        let json = make_release_json("v0.5.0", "https://github.com/releases/v0.5.0");
+        let json = make_release_json("v9.9.9", "https://github.com/releases/v9.9.9");
         let info = parse_update_info(&json).expect("parse failed in test");
-        assert_eq!(info.latest_version, "0.5.0");
+        assert_eq!(info.latest_version, "9.9.9");
         assert!(info.update_available);
-        assert_eq!(info.release_url, "https://github.com/releases/v0.5.0");
+        assert_eq!(info.release_url, "https://github.com/releases/v9.9.9");
     }
 
     #[test]
