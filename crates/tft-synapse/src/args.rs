@@ -34,7 +34,7 @@ pub struct Args {
 
 impl Args {
     pub fn effective_model_path(&self) -> std::path::PathBuf {
-        if self.model_path.is_empty() {
+        let path = if self.model_path.is_empty() {
             let home = std::env::var("USERPROFILE")
                 .or_else(|_| std::env::var("HOME"))
                 .unwrap_or_else(|_| ".".to_string());
@@ -43,7 +43,18 @@ impl Args {
                 .join("model.json")
         } else {
             std::path::PathBuf::from(&self.model_path)
+        };
+
+        // Ensure the parent directory exists so the model can be saved on first run.
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
+                if let Err(e) = std::fs::create_dir_all(parent) {
+                    eprintln!("warn: could not create model directory {:?}: {}", parent, e);
+                }
+            }
         }
+
+        path
     }
 }
 

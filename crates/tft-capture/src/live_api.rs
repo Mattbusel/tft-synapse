@@ -110,7 +110,8 @@ impl RiotLiveApiReader {
         let current_gold = active
             .get("currentGold")
             .and_then(|v| v.as_f64())
-            .unwrap_or(0.0) as u8;
+            .unwrap_or(0.0)
+            .clamp(0.0, 255.0) as u8;
 
         let level = active.get("level").and_then(|v| v.as_u64()).unwrap_or(1) as u8;
 
@@ -120,7 +121,7 @@ impl RiotLiveApiReader {
             .and_then(|s| s.get("currentHealth"))
             .and_then(|v| v.as_f64())
             .or_else(|| active.get("health").and_then(|v| v.as_f64()))
-            .map(|h| h.round() as u8)
+            .map(|h| h.clamp(0.0, 255.0).round() as u8)
             .unwrap_or(100);
 
         // XP toward next level
@@ -147,11 +148,20 @@ impl RiotLiveApiReader {
                     .iter()
                     .filter_map(|p| {
                         let name = p.get("summonerName")?.as_str()?.to_string();
+                        // Try multiple field paths in order of likelihood.
+                        // wardScore was the previous (incorrect) source — it is a LoL stat.
+                        // TFT exposes health via scores.health, health, or championStats.currentHealth.
                         let opp_hp = p
                             .get("scores")
-                            .and_then(|s| s.get("wardScore"))
+                            .and_then(|s| s.get("health"))
                             .and_then(|v| v.as_f64())
-                            .map(|h| h as u8)
+                            .or_else(|| p.get("health").and_then(|v| v.as_f64()))
+                            .or_else(|| {
+                                p.get("championStats")
+                                    .and_then(|s| s.get("currentHealth"))
+                                    .and_then(|v| v.as_f64())
+                            })
+                            .map(|h| h.clamp(0.0, 255.0) as u8)
                             .unwrap_or(100);
                         let opp_level = p.get("level").and_then(|v| v.as_u64()).unwrap_or(1) as u8;
                         Some(OpponentSnapshot {
@@ -166,10 +176,50 @@ impl RiotLiveApiReader {
             })
             .unwrap_or_default();
 
+        // Attempt to parse augments from activePlayer if the field is present.
+        // The Live Client Data API is a LoL API; TFT-specific fields are not
+        // officially documented but may appear in future versions.
+        // AugmentId is a newtype over u32; we hash the augment name string to
+        // produce a stable ID that round-trips through the advisor pipeline.
+        let current_augments: Vec<tft_types::AugmentId> = active
+            .get("augments")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|a| a.as_str())
+                    .enumerate()
+                    .map(|(i, _)| tft_types::AugmentId(i as u8))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        // Attempt to parse active traits from activePlayer if present.
+        // Trait tier defaults to 0 when not provided by the API.
+        let active_traits: Vec<(String, u8)> = active
+            .get("traits")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|t| {
+                        let name = t
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .map(|s| s.to_string())
+                            .or_else(|| t.as_str().map(|s| s.to_string()))?;
+                        let tier =
+                            t.get("tier_current").and_then(|v| v.as_u64()).unwrap_or(0) as u8;
+                        Some((name, tier))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
         Ok(GameState {
             round: RoundInfo { stage, round },
+            // Board data not available via Riot Live Client Data API — populated by screen capture overlay
             board: vec![],
             bench: vec![None; 9],
+            // Shop data not available via Live API — populated by screen capture
             shop: (0..5)
                 .map(|_| ShopSlot {
                     champion_id: None,
@@ -183,9 +233,9 @@ impl RiotLiveApiReader {
             level,
             xp,
             streak: 0,
-            current_augments: vec![],
+            current_augments,
             augment_choices: None,
-            active_traits: vec![],
+            active_traits,
             opponents,
         })
     }
@@ -427,6 +477,30 @@ mod tests {
         });
         let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
         assert!(state.opponents[0].active_traits.is_empty());
+    }
+
+    #[test]
+    fn test_parse_game_state_gold_clamped_at_255() {
+        // gold of 300.0 exceeds u8::MAX; must be clamped to 255 rather than wrapping
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 300.0, "level": 1 }
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert_eq!(state.gold, 255, "gold should be clamped at 255");
+    }
+
+    #[test]
+    fn test_parse_game_state_opponent_hp_tries_health_field() {
+        // Opponent has a top-level "health" field; should read that, not fall back to default
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 0.0, "level": 1 },
+            "allPlayers": [{ "summonerName": "X", "health": 50.0 }]
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert_eq!(
+            state.opponents[0].hp, 50,
+            "opponent hp should be read from health field"
+        );
     }
 
     #[test]

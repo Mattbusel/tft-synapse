@@ -28,7 +28,11 @@ impl std::fmt::Display for ConnectionStatus {
 pub struct UiState {
     pub connection_status: Option<ConnectionStatus>,
     pub game_state: Option<GameState>,
+    /// Short recommendation for the HUD banner.
+    /// WARNING: must always be set together with `full_recommendation` to avoid divergence.
     pub recommendation: Option<Recommendation>,
+    /// Full recommendation for the detail panel.
+    /// WARNING: must always be set together with `recommendation` to avoid divergence.
     pub full_recommendation: Option<FullRecommendation>,
     pub games_trained: u32,
     pub last_error: Option<String>,
@@ -67,8 +71,10 @@ impl UiState {
     }
 
     /// Set overlay opacity and mark dirty.
+    /// The value is clamped to [0.0, 1.0] before being forwarded to OverlayConfig
+    /// (which may apply a tighter minimum of 0.1 for usability).
     pub fn set_opacity(&mut self, v: f32) {
-        self.overlay_config.set_opacity(v);
+        self.overlay_config.set_opacity(v.clamp(0.0, 1.0));
         self.overlay_dirty = true;
     }
 

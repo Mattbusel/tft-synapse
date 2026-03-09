@@ -4,6 +4,9 @@ use tft_data::Catalog;
 use tft_types::{AugmentId, GameState};
 use tracing::info;
 
+/// Score threshold above which a pick is considered a "top pick" in post-game review.
+const TOP_PICK_THRESHOLD: f64 = 0.7;
+
 /// A post-game review entry for one augment decision.
 #[derive(Debug, Clone)]
 pub struct ReviewEntry {
@@ -17,7 +20,7 @@ pub struct ReviewEntry {
     pub chosen_score: f32,
     /// Names of the other augments offered (with placeholder score 0.0).
     pub alternatives: Vec<(String, f32)>,
-    /// True if the chosen score was >= 0.7 (heuristic for "good pick").
+    /// True if the chosen score was >= TOP_PICK_THRESHOLD (heuristic for "good pick").
     pub was_top_pick: bool,
 }
 
@@ -115,7 +118,7 @@ impl GameSession {
                     })
                     .collect();
 
-                let was_top_pick = d.score >= 0.7;
+                let was_top_pick = f64::from(d.score) >= TOP_PICK_THRESHOLD;
 
                 ReviewEntry {
                     stage: d.round_stage,
@@ -236,7 +239,9 @@ mod tests {
     fn test_review_summary_was_top_pick_above_threshold() {
         let mut session = GameSession::new(1);
         let state = make_state(2, 1);
-        session.record_decision(&state, vec![AugmentId(0)], AugmentId(0), 0.7);
+        // Use 0.71 rather than exactly 0.7: f32 → f64 promotion makes 0.7f32
+        // slightly less than 0.7f64, which would cause a false failure.
+        session.record_decision(&state, vec![AugmentId(0)], AugmentId(0), 0.71);
         let entries = session.review_summary(global_catalog());
         assert!(entries[0].was_top_pick);
     }

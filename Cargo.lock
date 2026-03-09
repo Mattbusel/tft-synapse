@@ -3767,6 +3767,7 @@ dependencies = [
  "serde",
  "tft-data",
  "tft-types",
+ "tracing",
 ]
 
 [[package]]

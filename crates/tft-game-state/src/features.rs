@@ -13,8 +13,11 @@ use crate::normalizer::*;
 use std::collections::HashMap;
 use tft_data::Catalog;
 use tft_types::{GameState, TftError};
+use tracing::warn;
 
-/// Total feature vector dimension (upper bound for allocation hints).
+/// Upper bound on the feature vector dimension used for allocation hints.
+/// This is a maximum capacity — the actual dimension is computed per-extractor via `dim()`.
+/// Do not use this constant to index into a feature vector; use `extractor.dim()` instead.
 pub const FEATURE_DIM: usize = 512;
 
 /// Extracts features from a GameState into a fixed-size f32 vector.
@@ -34,10 +37,37 @@ impl FeatureExtractor {
             .enumerate()
             .map(|(i, t)| (t.name.clone(), i))
             .collect();
+
+        let raw_champions = catalog.champion_count();
+        let raw_augments = catalog.augment_count();
+        let raw_traits = catalog.traits.len();
+
+        if raw_champions > 64 {
+            warn!(
+                "Catalog has {} champions; feature extractor silently caps at 64. \
+                 Champions beyond index 63 will be ignored.",
+                raw_champions
+            );
+        }
+        if raw_augments > 64 {
+            warn!(
+                "Catalog has {} augments; feature extractor silently caps at 64. \
+                 Augments beyond index 63 will be ignored.",
+                raw_augments
+            );
+        }
+        if raw_traits > 32 {
+            warn!(
+                "Catalog has {} traits; feature extractor silently caps at 32. \
+                 Traits beyond index 31 will be ignored.",
+                raw_traits
+            );
+        }
+
         Self {
-            n_champions: catalog.champion_count().min(64),
-            n_augments: catalog.augment_count().min(64),
-            n_traits: catalog.traits.len().min(32),
+            n_champions: raw_champions.min(64),
+            n_augments: raw_augments.min(64),
+            n_traits: raw_traits.min(32),
             trait_index,
         }
     }

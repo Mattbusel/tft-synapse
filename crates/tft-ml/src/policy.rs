@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use tft_data::Catalog;
 use tft_game_state::FeatureExtractor;
 use tft_types::{AugmentId, GameState, Placement, StateTransition, TftError};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 const HIDDEN1: usize = 64;
 const HIDDEN2: usize = 32;
@@ -132,7 +132,13 @@ impl AugmentPolicy {
 
     /// Save model weights to disk.
     pub fn save(&self) -> Result<(), TftError> {
-        save_model(&self.net, self.games_trained, &self.model_path)?;
+        if let Err(e) = save_model(&self.net, self.games_trained, &self.model_path) {
+            warn!(
+                "Failed to save model to {:?} after {} games: {}",
+                self.model_path, self.games_trained, e
+            );
+            return Err(e);
+        }
         info!(
             "Model saved to {:?} ({} games)",
             self.model_path, self.games_trained

@@ -10,6 +10,7 @@ workspace = true
 tft-types = { path = "../tft-types" }
 tft-data = { path = "../tft-data" }
 serde = { workspace = true }
+tracing = { workspace = true }
 proptest = { workspace = true, optional = true }
 
 [features]

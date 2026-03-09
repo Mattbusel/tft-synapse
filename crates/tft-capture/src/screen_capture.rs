@@ -174,7 +174,9 @@ impl ScreenCaptureReader {
             return 0;
         }
 
-        // HP bar region: top-left corner, 200 wide × 30 tall (scaled to image)
+        // HP bar region: top-left corner, 200 wide × 30 tall (scaled to image).
+        // Pixel positions assume a 1920×1080 reference layout; other resolutions
+        // are scaled proportionally by the division factors below.
         let bar_w = (width / 10).min(200);
         let bar_h = (height / 36).min(30);
 
@@ -191,7 +193,10 @@ impl ScreenCaptureReader {
                 let g = pixels[idx + 1] as u32;
                 let r = pixels[idx + 2] as u32;
                 total_px += 1;
-                // Green-dominant pixel = health bar fill
+                // Green-dominant pixel = health bar fill.
+                // Threshold: G channel > 100 rules out dark/black pixels.
+                // G must exceed R+30 and B+30 to reject yellow (high R+G) and
+                // cyan (high G+B) false positives — TFT HP bars are a saturated green.
                 if g > 100 && g > r.saturating_add(30) && g > b.saturating_add(30) {
                     green_px += 1;
                 }
@@ -217,7 +222,8 @@ impl ScreenCaptureReader {
             return 0;
         }
 
-        // Gold HUD region: bottom-center strip
+        // Gold HUD region: bottom-center strip.
+        // Assumes 1920×1080 reference layout: x ≈ 768–1152 px, y ≈ 972–1080 px.
         let x0 = width * 2 / 5;
         let x1 = width * 3 / 5;
         let y0 = height * 9 / 10;
@@ -234,7 +240,10 @@ impl ScreenCaptureReader {
                 let b = pixels[idx] as u32;
                 let g = pixels[idx + 1] as u32;
                 let r = pixels[idx + 2] as u32;
-                // Yellow = high R, high G, low B
+                // Yellow pixel detection: high R (>180) + high G (>160) + low B (<80).
+                // TFT gold coins render as a warm yellow-orange (#FFD700 range in sRGB).
+                // R>180 & G>160 captures the yellow-orange hue; B<80 rejects white and
+                // light-grey HUD elements that share high R+G values.
                 if r > 180 && g > 160 && b < 80 {
                     yellow_px += 1;
                 }

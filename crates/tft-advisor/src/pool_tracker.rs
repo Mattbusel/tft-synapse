@@ -136,6 +136,9 @@ impl Default for PoolTracker {
 
 /// Returns the fixed pool size for a given cost tier.
 ///
+/// Values are for **TFT Set 13** (Remix Rumble era). Riot adjusts these each set —
+/// verify against the official patch notes and update all five arms when a new set ships.
+///
 /// Unknown costs return 0.
 pub fn pool_size_for_cost(cost: u8) -> u8 {
     match cost {

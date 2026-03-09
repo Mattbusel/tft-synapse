@@ -14,9 +14,9 @@ use tft_types::{GameState, TftError};
 /// Threat level from a specific opponent.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ThreatLevel {
-    /// Opponent HP > 70: still strong, likely to fight multiple more rounds.
+    /// Opponent HP >= 70: still strong, likely to fight multiple more rounds.
     High,
-    /// Opponent 30 < HP <= 70: moderate threat.
+    /// Opponent 30 < HP < 70: moderate threat.
     Medium,
     /// Opponent HP <= 30: likely to be eliminated soon.
     Low,
@@ -52,11 +52,11 @@ impl OpponentTracker {
 
     /// Classify an HP value into a threat level.
     ///
-    /// - `hp > 70` → `High`
-    /// - `30 < hp <= 70` → `Medium`
+    /// - `hp >= 70` → `High`
+    /// - `30 < hp < 70` → `Medium`
     /// - `hp <= 30` → `Low`
     fn classify_threat(hp: u8) -> ThreatLevel {
-        if hp > 70 {
+        if hp >= 70 {
             ThreatLevel::High
         } else if hp > 30 {
             ThreatLevel::Medium
@@ -270,12 +270,13 @@ mod tests {
     }
 
     #[test]
-    fn test_threat_level_medium_at_70() {
+    fn test_threat_level_high_at_70() {
+        // hp=70 exactly is High (boundary is inclusive: hp >= 70 → High)
         let state = make_state(vec![], vec![make_opponent("A", 70, vec![])]);
         let analysis = OpponentTracker::new()
             .analyze_lobby(&state, make_catalog())
             .expect("analyze failed in test");
-        assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::Medium);
+        assert_eq!(analysis.opponents[0].threat_level, ThreatLevel::High);
     }
 
     #[test]
