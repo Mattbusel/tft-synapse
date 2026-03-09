@@ -226,7 +226,7 @@ impl RoundTimer {
 
         // Default: econ
         let augment_distant = events.iter().find(|e| e.event_type == EventType::Augment);
-        if augment_distant.map_or(true, |e| e.rounds_away >= 3) {
+        if augment_distant.is_none_or(|e| e.rounds_away >= 3) {
             return "Econ — save to 50g before next augment".to_string();
         }
 

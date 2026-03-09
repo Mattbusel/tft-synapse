@@ -58,7 +58,7 @@ pub struct PositionRecommendation {
 }
 
 /// A complete board layout recommendation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct BoardLayout {
     /// One entry per board champion.
     pub positions: Vec<PositionRecommendation>,
@@ -70,18 +70,6 @@ pub struct BoardLayout {
     pub backline_count: u8,
     /// Situational warning string, or `None` if the layout is balanced.
     pub layout_warning: Option<String>,
-}
-
-impl Default for BoardLayout {
-    fn default() -> Self {
-        BoardLayout {
-            positions: vec![],
-            carry_champion: None,
-            frontline_count: 0,
-            backline_count: 0,
-            layout_warning: None,
-        }
-    }
 }
 
 /// Generates deterministic positioning recommendations for all board champions.
@@ -282,7 +270,7 @@ pub fn classify_role(cost: u8, traits: &[String]) -> PositionRole {
     let has_carry = traits.iter().any(|t| {
         CARRY_TRAITS
             .iter()
-            .any(|ct| t.to_ascii_lowercase() == ct.to_ascii_lowercase())
+            .any(|ct| t.eq_ignore_ascii_case(ct))
     });
     if has_carry {
         return PositionRole::Carry;
@@ -291,7 +279,7 @@ pub fn classify_role(cost: u8, traits: &[String]) -> PositionRole {
     let has_support = traits.iter().any(|t| {
         SUPPORT_TRAITS
             .iter()
-            .any(|st| t.to_ascii_lowercase() == st.to_ascii_lowercase())
+            .any(|st| t.eq_ignore_ascii_case(st))
     });
     if has_support {
         return PositionRole::Support;
@@ -300,7 +288,7 @@ pub fn classify_role(cost: u8, traits: &[String]) -> PositionRole {
     let has_frontline = traits.iter().any(|t| {
         FRONTLINE_TRAITS
             .iter()
-            .any(|ft| t.to_ascii_lowercase() == ft.to_ascii_lowercase())
+            .any(|ft| t.eq_ignore_ascii_case(ft))
     });
     if has_frontline {
         return PositionRole::Frontline;

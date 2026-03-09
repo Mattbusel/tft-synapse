@@ -9,7 +9,7 @@
 //! - Thread-safe: OpponentTracker holds no mutable state
 
 use tft_data::Catalog;
-use tft_types::{GameState, OpponentSnapshot, TftError};
+use tft_types::{GameState, TftError};
 
 /// Threat level from a specific opponent.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -33,23 +33,13 @@ pub struct OpponentAnalysis {
 }
 
 /// Summary of the lobby state.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct LobbyAnalysis {
     pub opponents: Vec<OpponentAnalysis>,
     /// Trait names contested by 2 or more opponents.
     pub contested_comps: Vec<String>,
     /// Suggest a pivot if your most important trait is heavily contested.
     pub recommended_pivot: Option<String>,
-}
-
-impl Default for LobbyAnalysis {
-    fn default() -> Self {
-        LobbyAnalysis {
-            opponents: vec![],
-            contested_comps: vec![],
-            recommended_pivot: None,
-        }
-    }
 }
 
 /// Analyzes the current lobby state to surface threat levels and contested comps.

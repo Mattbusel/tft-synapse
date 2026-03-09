@@ -80,13 +80,11 @@ impl CarryAdvisor {
         }
 
         // Bench
-        for slot_opt in &state.bench {
-            if let Some(slot) = slot_opt {
-                *copies.entry(slot.champion_id).or_insert(0) += 1;
-                let entry = max_star.entry(slot.champion_id).or_insert(StarLevel::One);
-                if slot.star_level as u8 > *entry as u8 {
-                    *entry = slot.star_level;
-                }
+        for slot in state.bench.iter().flatten() {
+            *copies.entry(slot.champion_id).or_insert(0) += 1;
+            let entry = max_star.entry(slot.champion_id).or_insert(StarLevel::One);
+            if slot.star_level as u8 > *entry as u8 {
+                *entry = slot.star_level;
             }
         }
 

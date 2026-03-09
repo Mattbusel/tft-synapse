@@ -65,6 +65,7 @@ pub fn check_for_update_at(url: &str) -> Option<UpdateInfo> {
 /// Parse version info from a JSON string directly (for testing the parsing logic).
 ///
 /// Returns `None` if the JSON is invalid or missing required fields.
+#[cfg_attr(not(test), allow(dead_code))]
 pub fn parse_update_info(json_str: &str) -> Option<UpdateInfo> {
     let json: serde_json::Value = serde_json::from_str(json_str).ok()?;
     let tag_name = json.get("tag_name")?.as_str()?;
