@@ -3750,9 +3750,11 @@ dependencies = [
 name = "tft-data"
 version = "0.1.0"
 dependencies = [
+ "dirs-next",
  "serde",
  "serde_json",
  "serde_yaml",
+ "tempfile",
  "tft-types",
  "thiserror 1.0.69",
 ]

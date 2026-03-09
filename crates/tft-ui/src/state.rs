@@ -1,7 +1,7 @@
 //! UI state: what the application is currently showing.
 
 use tft_types::GameState;
-use tft_advisor::Recommendation;
+use tft_advisor::{FullRecommendation, Recommendation};
 use crate::overlay::OverlayConfig;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -29,6 +29,7 @@ pub struct UiState {
     pub connection_status: Option<ConnectionStatus>,
     pub game_state: Option<GameState>,
     pub recommendation: Option<Recommendation>,
+    pub full_recommendation: Option<FullRecommendation>,
     pub games_trained: u32,
     pub last_error: Option<String>,
     pub last_info: Option<String>,

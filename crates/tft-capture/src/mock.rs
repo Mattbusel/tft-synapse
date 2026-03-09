@@ -93,6 +93,7 @@ pub fn default_game_state() -> GameState {
         current_augments: vec![AugmentId(0)],
         augment_choices: Some([AugmentId(0), AugmentId(1), AugmentId(2)]),
         active_traits: vec![("Arcanist".to_string(), 2)],
+        opponents: vec![],
     }
 }
 

@@ -12,3 +12,9 @@ serde = { workspace = true }
 serde_yaml = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+# dirs-next: cross-platform home directory resolution for hot-reload catalog path
+dirs-next = "2.0"
+
+[dev-dependencies]
+# tempfile: create temp files in tests for from_json_file coverage
+tempfile = "3"

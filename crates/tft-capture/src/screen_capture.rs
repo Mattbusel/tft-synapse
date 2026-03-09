@@ -318,6 +318,7 @@ impl GameStateReader for ScreenCaptureReader {
             current_augments: vec![],
             augment_choices: None,
             active_traits: vec![],
+            opponents: vec![],
         };
 
         Ok(Some(state))

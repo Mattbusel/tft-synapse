@@ -1,7 +1,7 @@
 //! Riot Games Live Client Data API reader.
 //! Polls http://127.0.0.1:2999/liveclientdata/allgamedata every 500ms.
 
-use tft_types::{GameState, RoundInfo, ShopSlot, TftError};
+use tft_types::{GameState, OpponentSnapshot, RoundInfo, ShopSlot, TftError};
 use crate::reader::{GameStateReader, ReaderMode};
 use std::sync::{Arc, Mutex};
 use tracing::{debug, warn};
@@ -65,6 +65,24 @@ impl RiotLiveApiReader {
         // Convert game time to approximate stage/round
         let stage = ((round_str / 120.0) as u8).min(7) + 1;
 
+        // Parse allPlayers for opponent snapshots (limited data available from this endpoint)
+        let opponents: Vec<OpponentSnapshot> = raw
+            .get("allPlayers")
+            .and_then(|p| p.as_array())
+            .map(|players| {
+                players.iter().filter_map(|p| {
+                    let name = p.get("summonerName")?.as_str()?.to_string();
+                    Some(OpponentSnapshot {
+                        player_name: name,
+                        hp: 100,
+                        level: 1,
+                        board_champions: vec![],
+                        active_traits: vec![],
+                    })
+                }).collect()
+            })
+            .unwrap_or_default();
+
         Ok(GameState {
             round: RoundInfo { stage, round: 1 },
             board: vec![],
@@ -78,6 +96,7 @@ impl RiotLiveApiReader {
             current_augments: vec![],
             augment_choices: None,
             active_traits: vec![],
+            opponents,
         })
     }
 }
@@ -180,5 +199,88 @@ mod tests {
         let result = reader.poll();
         assert!(result.is_ok());
         // May be None if no game running (expected in CI)
+    }
+
+    #[test]
+    fn test_parse_game_state_all_players_populates_opponents() {
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 20.0, "level": 5 },
+            "gameData": { "gameTime": 180.0 },
+            "allPlayers": [
+                { "summonerName": "Alice" },
+                { "summonerName": "Bob" }
+            ]
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert_eq!(state.opponents.len(), 2);
+        assert_eq!(state.opponents[0].player_name, "Alice");
+        assert_eq!(state.opponents[1].player_name, "Bob");
+    }
+
+    #[test]
+    fn test_parse_game_state_no_all_players_gives_empty_opponents() {
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 10.0, "level": 3 },
+            "gameData": { "gameTime": 60.0 }
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert!(state.opponents.is_empty());
+    }
+
+    #[test]
+    fn test_parse_game_state_opponent_hp_defaults_to_100() {
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 0.0, "level": 1 },
+            "allPlayers": [{ "summonerName": "Player1" }]
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert_eq!(state.opponents[0].hp, 100);
+    }
+
+    #[test]
+    fn test_parse_game_state_opponent_level_defaults_to_1() {
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 0.0, "level": 1 },
+            "allPlayers": [{ "summonerName": "SomePlayer" }]
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert_eq!(state.opponents[0].level, 1);
+    }
+
+    #[test]
+    fn test_parse_game_state_opponent_board_champions_empty() {
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 0.0, "level": 1 },
+            "allPlayers": [{ "summonerName": "X" }]
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert!(state.opponents[0].board_champions.is_empty());
+    }
+
+    #[test]
+    fn test_parse_game_state_opponent_active_traits_empty() {
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 0.0, "level": 1 },
+            "allPlayers": [{ "summonerName": "X" }]
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        assert!(state.opponents[0].active_traits.is_empty());
+    }
+
+    #[test]
+    fn test_parse_game_state_player_missing_summoner_name_skipped() {
+        let raw = serde_json::json!({
+            "activePlayer": { "currentGold": 0.0, "level": 1 },
+            "allPlayers": [
+                { "summonerName": "Valid" },
+                { "noName": true },
+                { "summonerName": "AlsoValid" }
+            ]
+        });
+        let state = RiotLiveApiReader::parse_game_state(&raw).expect("parse failed in test");
+        // Entry without summonerName should be skipped
+        assert_eq!(state.opponents.len(), 2);
+        assert_eq!(state.opponents[0].player_name, "Valid");
+        assert_eq!(state.opponents[1].player_name, "AlsoValid");
     }
 }

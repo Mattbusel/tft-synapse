@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use egui::Context;
 use tft_types::GameState;
 use tft_advisor::Advisor;
-use crate::panels::{augment_panel, stats_panel, status_bar};
+use crate::panels::{augment_panel, carry_panel, economy_panel, item_panel, lobby_panel, stats_panel, status_bar};
 use crate::state::{ConnectionStatus, UiState};
 use crate::theme;
 use crate::overlay;
@@ -42,16 +42,17 @@ impl TftSynapseApp {
                 AppMessage::GameStateUpdate(state) => {
                     self.ui_state.set_connected(ConnectionStatus::Connected);
 
-                    if state.is_augment_phase() {
-                        match self.advisor.advise(&state) {
-                            Ok(rec) => self.ui_state.recommendation = rec,
-                            Err(e) => {
-                                warn!("Advisor error: {}", e);
-                                self.ui_state.last_error = Some(e.to_string());
-                            }
+                    match self.advisor.advise_full(&state) {
+                        Ok(full) => {
+                            self.ui_state.recommendation = full.augment.clone();
+                            self.ui_state.full_recommendation = Some(full);
                         }
-                    } else {
-                        self.ui_state.recommendation = None;
+                        Err(e) => {
+                            warn!("Advisor error: {}", e);
+                            self.ui_state.last_error = Some(e.to_string());
+                            self.ui_state.recommendation = None;
+                            self.ui_state.full_recommendation = None;
+                        }
                     }
 
                     self.ui_state.games_trained = self.advisor.games_trained();
@@ -153,6 +154,22 @@ impl eframe::App for TftSynapseApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             augment_panel::render(ui, self.ui_state.recommendation.as_ref());
+
+            if let Some(ref full) = self.ui_state.full_recommendation {
+                ui.add_space(4.0);
+                egui::CollapsingHeader::new("Economy").default_open(true).show(ui, |ui| {
+                    economy_panel::render(ui, &full.economy);
+                });
+                egui::CollapsingHeader::new("Carry Targets").default_open(true).show(ui, |ui| {
+                    carry_panel::render(ui, &full.carries);
+                });
+                egui::CollapsingHeader::new("Items").default_open(false).show(ui, |ui| {
+                    item_panel::render(ui, &full.items);
+                });
+                egui::CollapsingHeader::new("Lobby").default_open(false).show(ui, |ui| {
+                    lobby_panel::render(ui, &full.lobby);
+                });
+            }
 
             if let Some(ref info) = self.ui_state.last_info {
                 ui.add_space(8.0);

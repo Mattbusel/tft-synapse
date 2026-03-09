@@ -1,6 +1,6 @@
 # tft-synapse
 
-**AI-powered Teamfight Tactics advisor. Real-time augment recommendations that learn from every game you play.**
+**AI-powered Teamfight Tactics advisor. Real-time recommendations across every decision that learn from every game you play.**
 
 [![Rust](https://img.shields.io/badge/built%20with-Rust-000000?style=flat&logo=rust)](https://www.rust-lang.org/)
 [![Release](https://img.shields.io/github/v/release/Mattbusel/tft-synapse?style=flat)](https://github.com/Mattbusel/tft-synapse/releases/latest)
@@ -10,7 +10,7 @@
 
 ## Download
 
-[**tft-synapse.exe**](https://github.com/Mattbusel/tft-synapse/releases/latest) - Windows x64, 7.8MB, no installer required.
+[**tft-synapse.exe**](https://github.com/Mattbusel/tft-synapse/releases/latest) - Windows x64, 8.0MB, no installer required.
 
 Run it. Start a TFT game. That is it.
 
@@ -30,6 +30,16 @@ BEST Last Stand: strong comeback option at 28hp
 **Shop advisor** - shows which units to buy and whether to reroll based on your current gold, upgrade potential, and active traits.
 
 **Board advisor** - scores your composition coherence and recommends swaps to strengthen your trait synergies.
+
+**Economy advisor** - tells you whether to save, level up, roll down, or maintain your streak based on your current HP, gold, and streak state. Tracks interest thresholds so you always know how far you are from the next 10g bracket.
+
+**Carry identification** - finds the top 3 carry targets to build toward 3-star, scored by copies already held across board, bench, and shop, weighted by unit cost and star level.
+
+**Item advisor** - matches each item you hold to the best champion on your board based on trait alignment. AP items to Arcanists, AD/crit to Gunners, tank items to frontline.
+
+**Opponent tracker** - reads the lobby from the Live API, flags contested traits, and suggests a pivot if 3+ players are running the same comp as you.
+
+**Patch hot-reload** - drop a `~/.tft-synapse/catalog.json` file to override the embedded catalog without reinstalling. Update champions and augments when patches drop.
 
 **Stats panel** - tracks placement history, top-four rate, first-place rate, and total games the model has trained on. Export to CSV at any time.
 
@@ -110,7 +120,7 @@ cargo build --release
 # binary at target/release/tft-synapse.exe
 ```
 
-The binary embeds all game data (augments, champions, traits) at compile time. No external data files needed.
+The binary embeds all game data (augments, champions, traits, items) at compile time. No external data files needed. To override the catalog without rebuilding, place a `catalog.json` in `~/.tft-synapse/` and it will be loaded at startup instead.
 
 ---
 
@@ -136,11 +146,20 @@ Zero external ML dependencies. The neural network is implemented in pure Rust.
 
 - Zero panics in production code paths (`unwrap`, `expect`, `panic!` denied by clippy lint)
 - Typed error enum (`TftError`) covering every failure surface
-- 249 unit tests across all crates, all passing
+- 374 unit tests across all crates, all passing
 - Game data baked into the binary at compile time - single file distribution
 - Model weights serialized as JSON to `~/.tft-synapse/model.json`
+- Patch hot-reload: drop `~/.tft-synapse/catalog.json` to override embedded catalog
 
 ---
+
+## What was shipped in v0.4.0
+
+- Economy advisor with streak detection and gold interest tracking
+- Carry identification - top 3 units to build toward 3-star
+- Item advisor - matches held items to best champions by trait
+- Opponent tracker - flags contested comps and pivot suggestions
+- Patch hot-reload - override embedded catalog via `~/.tft-synapse/catalog.json`
 
 ## What was shipped in v0.3.0
 
@@ -152,12 +171,10 @@ Zero external ML dependencies. The neural network is implemented in pure Rust.
 
 ## Roadmap
 
-- **Itemization advisor** - recommend which items to put on which champions based on your current board
-- **Economy advisor** - tell you when to level up vs roll vs save gold based on your HP and streak
-- **Carry identification** - identify the strongest unit to 3-star given what's available in your shop and on the board
-- **Opponent tracker** - summarize what other players are running to avoid contested comps
-- **Streak advisor** - detect when loss-streaking or win-streaking is the optimal econ strategy
-- **Patch catalog update** - hot-reload champion/augment data without a rebuild when patches drop
+- **Positioning advisor** - recommend frontline / backline placement for your board units
+- **Augment tier list sync** - pull community tier list data to weight recommendations by current meta
+- **Multi-game trend analysis** - track which augments are actually winning for your playstyle over time
+- **Discord webhook** - post post-game stats to a Discord channel automatically
 
 ---
 

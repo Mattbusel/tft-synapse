@@ -10,6 +10,10 @@ use crate::session::GameSession;
 use crate::metrics::AdvisorMetrics;
 use crate::shop_advisor::{ShopAdvisor, ShopRecommendation, RerollRecommendation};
 use crate::board_advisor::{BoardAdvisor, BoardRecommendation};
+use crate::economy_advisor::{EconomyAdvisor, EconomyAdvice};
+use crate::carry_advisor::{CarryAdvisor, CarryCandidate};
+use crate::item_advisor::{ItemAdvisor, ItemRecommendation};
+use crate::opponent_tracker::{LobbyAnalysis, OpponentTracker};
 use tracing::info;
 
 /// A single augment recommendation with score and reasoning.
@@ -27,7 +31,7 @@ pub struct Recommendation {
     pub top_pick: AugmentId,
 }
 
-/// A complete recommendation covering augment, shop, reroll, and board decisions.
+/// A complete recommendation covering augment, shop, reroll, board, economy, and carry decisions.
 #[derive(Debug)]
 pub struct FullRecommendation {
     /// Augment pick recommendation (present only during augment phase).
@@ -38,6 +42,14 @@ pub struct FullRecommendation {
     pub reroll: RerollRecommendation,
     /// Board composition analysis.
     pub board: BoardRecommendation,
+    /// Economy (gold / leveling) advice.
+    pub economy: EconomyAdvice,
+    /// Top carry candidates sorted by score descending.
+    pub carries: Vec<CarryCandidate>,
+    /// Item placement recommendations.
+    pub items: Vec<ItemRecommendation>,
+    /// Opponent lobby analysis.
+    pub lobby: LobbyAnalysis,
 }
 
 /// The main advisor: reads state, calls policy, returns recommendations.
@@ -48,6 +60,10 @@ pub struct Advisor {
     pub metrics: AdvisorMetrics,
     shop_advisor: ShopAdvisor,
     board_advisor: BoardAdvisor,
+    economy_advisor: EconomyAdvisor,
+    carry_advisor: CarryAdvisor,
+    item_advisor: ItemAdvisor,
+    opponent_tracker: OpponentTracker,
 }
 
 impl Advisor {
@@ -65,6 +81,10 @@ impl Advisor {
             metrics: AdvisorMetrics::new(),
             shop_advisor: ShopAdvisor::new(),
             board_advisor: BoardAdvisor::new(),
+            economy_advisor: EconomyAdvisor::new(),
+            carry_advisor: CarryAdvisor::new(),
+            item_advisor: ItemAdvisor::new(),
+            opponent_tracker: OpponentTracker::new(),
         })
     }
 
@@ -104,7 +124,11 @@ impl Advisor {
         let shop = self.shop_advisor.advise_buys(state, self.catalog)?;
         let reroll = self.shop_advisor.advise_reroll(state);
         let board = self.board_advisor.analyze_board(state, self.catalog)?;
-        Ok(FullRecommendation { augment, shop, reroll, board })
+        let economy = self.economy_advisor.advise(state)?;
+        let carries = self.carry_advisor.identify_carries(state, self.catalog)?;
+        let items = self.item_advisor.advise_items(state, self.catalog)?;
+        let lobby = self.opponent_tracker.analyze_lobby(state, self.catalog)?;
+        Ok(FullRecommendation { augment, shop, reroll, board, economy, carries, items, lobby })
     }
 
     /// Call after a game ends with the final placement.
@@ -146,6 +170,7 @@ mod tests {
             current_augments: vec![],
             augment_choices: Some([AugmentId(0), AugmentId(1), AugmentId(2)]),
             active_traits: vec![],
+            opponents: vec![],
         }
     }
 

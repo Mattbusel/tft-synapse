@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use tft_types::{AugmentDef, AugmentId, AugmentTier, ChampionDef, ChampionId, Cost, TftError};
+use tft_types::{AugmentDef, AugmentId, AugmentTier, ChampionDef, ChampionId, Cost, ItemDef, ItemId, ItemCategory, TftError};
 
 #[derive(Deserialize)]
 struct RawAugmentsFile {
@@ -89,6 +89,49 @@ pub fn parse_champions(yaml: &str) -> Result<Vec<ChampionDef>, TftError> {
     Ok(defs)
 }
 
+#[derive(Deserialize)]
+struct RawItemsFile {
+    #[allow(dead_code)]
+    meta_version: String,
+    items: Vec<RawItem>,
+}
+
+#[derive(Deserialize)]
+struct RawItem {
+    name: String,
+    category: String,
+    is_component: bool,
+    tags: Vec<String>,
+}
+
+fn parse_item_category(s: &str) -> ItemCategory {
+    match s {
+        "AttackDamage" => ItemCategory::AttackDamage,
+        "AbilityPower" => ItemCategory::AbilityPower,
+        "Tank" => ItemCategory::Tank,
+        "Mana" => ItemCategory::Mana,
+        "CriticalStrike" => ItemCategory::CriticalStrike,
+        "AttackSpeed" => ItemCategory::AttackSpeed,
+        "Healing" => ItemCategory::Healing,
+        _ => ItemCategory::Utility,
+    }
+}
+
+pub fn parse_items(yaml: &str) -> Result<Vec<ItemDef>, TftError> {
+    let raw: RawItemsFile = serde_yaml::from_str(yaml)
+        .map_err(|e| TftError::Catalog(format!("Failed to parse items.yaml: {}", e)))?;
+    let defs = raw.items.into_iter().enumerate().map(|(i, item)| {
+        ItemDef {
+            id: ItemId(i as u8),
+            name: item.name,
+            category: parse_item_category(&item.category),
+            is_component: item.is_component,
+            tags: item.tags,
+        }
+    }).collect();
+    Ok(defs)
+}
+
 pub fn parse_traits(yaml: &str) -> Result<Vec<RawTrait>, TftError> {
     let raw: RawTraitsFile = serde_yaml::from_str(yaml)
         .map_err(|e| TftError::Catalog(format!("Failed to parse traits.yaml: {}", e)))?;
@@ -163,5 +206,36 @@ mod tests {
         for def in &defs {
             assert!(!def.name.is_empty(), "augment {:?} has empty name", def.id);
         }
+    }
+
+    #[test]
+    fn test_parse_items_from_embedded_yaml() {
+        let result = parse_items(ITEMS_YAML);
+        assert!(result.is_ok(), "parse_items failed: {:?}", result.err());
+        let defs = result.expect("parse failed in test");
+        assert!(!defs.is_empty());
+    }
+
+    #[test]
+    fn test_item_ids_are_sequential() {
+        let defs = parse_items(ITEMS_YAML).expect("parse failed in test");
+        for (i, def) in defs.iter().enumerate() {
+            assert_eq!(def.id.0 as usize, i, "item id mismatch at index {}", i);
+        }
+    }
+
+    #[test]
+    fn test_items_have_names() {
+        let defs = parse_items(ITEMS_YAML).expect("parse failed in test");
+        for def in &defs {
+            assert!(!def.name.is_empty(), "item {:?} has empty name", def.id);
+        }
+    }
+
+    #[test]
+    fn test_parse_item_category_known_values() {
+        assert_eq!(parse_item_category("AttackDamage"), ItemCategory::AttackDamage);
+        assert_eq!(parse_item_category("Tank"), ItemCategory::Tank);
+        assert_eq!(parse_item_category("unknown"), ItemCategory::Utility);
     }
 }

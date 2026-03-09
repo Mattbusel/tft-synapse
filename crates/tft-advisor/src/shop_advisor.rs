@@ -311,6 +311,7 @@ mod tests {
             current_augments: vec![],
             augment_choices: None,
             active_traits: vec![],
+            opponents: vec![],
         }
     }
 

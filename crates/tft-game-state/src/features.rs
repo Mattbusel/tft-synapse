@@ -128,6 +128,7 @@ mod tests {
             current_augments: vec![AugmentId(0)],
             augment_choices: None,
             active_traits: vec![("Arcanist".to_string(), 2)],
+            opponents: vec![],
         }
     }
 

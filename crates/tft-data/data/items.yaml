@@ -1,0 +1,82 @@
+meta_version: "14.1"
+items:
+  - name: "B.F. Sword"
+    category: AttackDamage
+    is_component: true
+    tags: ["AD", "fighter", "carry"]
+  - name: "Recurve Bow"
+    category: AttackSpeed
+    is_component: true
+    tags: ["AS", "carry", "marksman"]
+  - name: "Needlessly Large Rod"
+    category: AbilityPower
+    is_component: true
+    tags: ["AP", "mage", "arcanist"]
+  - name: "Tear of the Goddess"
+    category: Mana
+    is_component: true
+    tags: ["mana", "mage", "support"]
+  - name: "Chain Vest"
+    category: Tank
+    is_component: true
+    tags: ["armor", "tank", "frontline"]
+  - name: "Negatron Cloak"
+    category: Tank
+    is_component: true
+    tags: ["MR", "tank", "frontline"]
+  - name: "Spatula"
+    category: Utility
+    is_component: true
+    tags: ["trait", "utility", "special"]
+  - name: "Infinity Edge"
+    category: CriticalStrike
+    is_component: false
+    tags: ["crit", "AD", "carry", "marksman"]
+  - name: "Rabadon's Deathcap"
+    category: AbilityPower
+    is_component: false
+    tags: ["AP", "mage", "arcanist", "carry"]
+  - name: "Blue Buff"
+    category: Mana
+    is_component: false
+    tags: ["mana", "mage", "AP", "arcanist"]
+  - name: "Warmog's Armor"
+    category: Tank
+    is_component: false
+    tags: ["HP", "tank", "frontline"]
+  - name: "Titan's Resolve"
+    category: Tank
+    is_component: false
+    tags: ["tank", "fighter", "frontline", "stacking"]
+  - name: "Guinsoo's Rageblade"
+    category: AttackSpeed
+    is_component: false
+    tags: ["AS", "carry", "marksman", "stacking"]
+  - name: "Jeweled Gauntlet"
+    category: AbilityPower
+    is_component: false
+    tags: ["AP", "mage", "crit", "arcanist"]
+  - name: "Spear of Shojin"
+    category: Mana
+    is_component: false
+    tags: ["mana", "AS", "fighter", "carry"]
+  - name: "Dragon's Claw"
+    category: Tank
+    is_component: false
+    tags: ["MR", "tank", "frontline", "healing"]
+  - name: "Bloodthirster"
+    category: Healing
+    is_component: false
+    tags: ["AD", "healing", "carry", "fighter"]
+  - name: "Hand of Justice"
+    category: Utility
+    is_component: false
+    tags: ["AD", "AP", "healing", "utility"]
+  - name: "Zeke's Herald"
+    category: AttackSpeed
+    is_component: false
+    tags: ["AS", "support", "utility", "aura"]
+  - name: "Zz'Rot Portal"
+    category: Tank
+    is_component: false
+    tags: ["tank", "frontline", "utility", "taunt"]
