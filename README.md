@@ -10,7 +10,7 @@
 
 ## Download
 
-[**tft-synapse.exe**](https://github.com/Mattbusel/tft-synapse/releases/latest) - Windows x64, 5.5MB, no installer required.
+[**tft-synapse.exe**](https://github.com/Mattbusel/tft-synapse/releases/latest) - Windows x64, 7.8MB, no installer required.
 
 Run it. Start a TFT game. That is it.
 
@@ -18,15 +18,22 @@ Run it. Start a TFT game. That is it.
 
 ## What it does
 
-When you reach an augment selection, tft-synapse ranks your three choices and explains why.
+tft-synapse runs alongside TFT as a transparent overlay and gives you real-time recommendations across all major decisions.
 
+**Augment selection**
 ```
 BEST   Last Stand: strong comeback option at 28hp
 2nd    Blue Battery: solid - synergizes with your 2 Arcanists
 3rd    Scoped Weapons: situational (score: 38%)
 ```
 
-The top panel shows score bars for each augment. The stats panel tracks your placement history and how many games the model has trained on. The window stays on top of TFT so you never need to alt-tab.
+**Shop advisor** - shows which units to buy and whether to reroll based on your current gold, upgrade potential, and active traits.
+
+**Board advisor** - scores your composition coherence and recommends swaps to strengthen your trait synergies.
+
+**Stats panel** - tracks placement history, top-four rate, first-place rate, and total games the model has trained on. Export to CSV at any time.
+
+**F9 toggle** - switches the overlay between interactive mode and click-through mode so it never blocks gameplay.
 
 ---
 
@@ -47,9 +54,13 @@ The model improves continuously. After 20-30 games it starts reflecting real pat
 
 ## Game state detection
 
-tft-synapse connects to the **Riot Games Live Client Data API** - a local HTTP server that TFT runs on `localhost:2999` during any active game. No API key required. No screen capture. No OCR.
+tft-synapse uses a three-tier detection chain:
 
-If the API is not available (no game running, custom game, etc.) the advisor shows a disconnected status and waits.
+1. **Riot Games Live Client Data API** - a local HTTP server TFT runs on `localhost:2999`. No API key required. This is the primary source and gives full game state.
+2. **Screen capture fallback** - if the Live API is unavailable, Win32 BitBlt captures HP and gold directly from the screen.
+3. **Mock mode** - used when no game is running, so the UI stays responsive for testing.
+
+The status bar shows which source is active.
 
 ---
 
@@ -61,13 +72,13 @@ If the API is not available (no game running, custom game, etc.) the advisor sho
 
 **Step 2:** Run it
 
-**Step 3:** Start a TFT game. The status bar will show "Connected" once the Live API is detected.
+**Step 3:** Start a TFT game. The status bar shows "Connected" once the Live API is detected.
 
 **Step 4:** When augment selection appears, ranked recommendations show automatically.
 
 **Step 5:** After each game, your placement is recorded and the model updates.
 
-The window is always-on-top by default. You can resize it freely.
+The window is always-on-top by default. Press **F9** to toggle click-through mode when you need to interact with the game underneath. You can resize it freely.
 
 ---
 
@@ -125,19 +136,28 @@ Zero external ML dependencies. The neural network is implemented in pure Rust.
 
 - Zero panics in production code paths (`unwrap`, `expect`, `panic!` denied by clippy lint)
 - Typed error enum (`TftError`) covering every failure surface
-- 174 unit tests across all crates, all passing
+- 249 unit tests across all crates, all passing
 - Game data baked into the binary at compile time - single file distribution
 - Model weights serialized as JSON to `~/.tft-synapse/model.json`
 
 ---
 
+## What was shipped in v0.3.0
+
+- Screen capture fallback when Live API is unavailable
+- Shop buy and reroll recommendations
+- Board composition analysis and trait coherence scoring
+- Overlay click-through toggle (F9)
+- CSV export for placement history and aggregate stats
+
 ## Roadmap
 
-- Screen capture fallback (for games where the Live API is unavailable)
-- Champion buy and reroll recommendations
-- Board composition suggestions based on current traits
-- Overlay transparency and click-through toggle
-- Export placement history and model stats to CSV
+- **Itemization advisor** - recommend which items to put on which champions based on your current board
+- **Economy advisor** - tell you when to level up vs roll vs save gold based on your HP and streak
+- **Carry identification** - identify the strongest unit to 3-star given what's available in your shop and on the board
+- **Opponent tracker** - summarize what other players are running to avoid contested comps
+- **Streak advisor** - detect when loss-streaking or win-streaking is the optimal econ strategy
+- **Patch catalog update** - hot-reload champion/augment data without a rebuild when patches drop
 
 ---
 
