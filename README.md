@@ -10,7 +10,7 @@
 
 ## Download
 
-[**tft-synapse.exe**](https://github.com/Mattbusel/tft-synapse/releases/latest) - Windows x64, 8.0MB, no installer required.
+[**tft-synapse.exe**](https://github.com/Mattbusel/tft-synapse/releases/latest) - Windows x64, 8.1MB, no installer required.
 
 Run it. Start a TFT game. That is it.
 
@@ -40,6 +40,18 @@ BEST Last Stand: strong comeback option at 28hp
 **Opponent tracker** - reads the lobby from the Live API, flags contested traits, and suggests a pivot if 3+ players are running the same comp as you.
 
 **Patch hot-reload** - drop a `~/.tft-synapse/catalog.json` file to override the embedded catalog without reinstalling. Update champions and augments when patches drop.
+
+**Stats panel** - tracks placement history, top-four rate, first-place rate, and total games the model has trained on. Export to CSV at any time.
+
+**Champion pool tracker** - shows how many copies of each unit remain in the shared pool. Flags exhausted and critical units so you know when a comp is contested before committing to it.
+
+**Positioning advisor** - classifies every unit on your board as frontline, carry, secondary carry, or support, then assigns recommended hex positions. Warns you if your board has no frontline or is carry-starved.
+
+**Stage awareness** - tracks the current stage and round, recommends your target level, and shows the next 3 key events (augments, carousels, PvE rounds) with how many rounds away they are.
+
+**Post-game review** - after each game, shows a breakdown of every augment decision you made: what you chose, what the model scored it, and what the alternatives were.
+
+**Auto-update notifier** - checks GitHub Releases on startup and shows a download link if a newer version is available.
 
 **Stats panel** - tracks placement history, top-four rate, first-place rate, and total games the model has trained on. Export to CSV at any time.
 
@@ -146,12 +158,20 @@ Zero external ML dependencies. The neural network is implemented in pure Rust.
 
 - Zero panics in production code paths (`unwrap`, `expect`, `panic!` denied by clippy lint)
 - Typed error enum (`TftError`) covering every failure surface
-- 374 unit tests across all crates, all passing
+- 488 unit tests across all crates, all passing
 - Game data baked into the binary at compile time - single file distribution
 - Model weights serialized as JSON to `~/.tft-synapse/model.json`
 - Patch hot-reload: drop `~/.tft-synapse/catalog.json` to override embedded catalog
 
 ---
+
+## What was shipped in v0.5.0
+
+- Champion pool tracker - real-time pool depletion for all 58 champions
+- Positioning advisor - hex position recommendations with frontline/carry/support roles
+- Stage awareness panel - level targets, upcoming events (augments/carousels/PvE), one-line priority action
+- Post-game review - per-decision breakdown after each game
+- Auto-update notifier - startup check against GitHub Releases API
 
 ## What was shipped in v0.4.0
 
@@ -171,10 +191,11 @@ Zero external ML dependencies. The neural network is implemented in pure Rust.
 
 ## Roadmap
 
-- **Positioning advisor** - recommend frontline / backline placement for your board units
+- **Full system tray** - minimize to tray with Show/Quit menu (stub in place)
 - **Augment tier list sync** - pull community tier list data to weight recommendations by current meta
-- **Multi-game trend analysis** - track which augments are actually winning for your playstyle over time
+- **Multi-game trend analysis** - track which augments are winning for your playstyle over time
 - **Discord webhook** - post post-game stats to a Discord channel automatically
+- **3-cost/4-cost pool probability** - estimate odds of hitting a unit given known pool depletion
 
 ---
 

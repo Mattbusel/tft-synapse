@@ -2,6 +2,7 @@
 //! Wires all crates together and launches the egui window.
 
 mod args;
+mod updater;
 
 use std::sync::mpsc;
 use std::thread;
@@ -58,6 +59,21 @@ fn main() {
                     }
                 }
                 thread::sleep(Duration::from_millis(500));
+            }
+        });
+    }
+
+    // Spawn a background thread to check for updates once at startup.
+    {
+        let tx = tx.clone();
+        thread::spawn(move || {
+            if let Some(info) = updater::check_for_update() {
+                if info.update_available {
+                    let _ = tx.send(AppMessage::UpdateAvailable {
+                        version: info.latest_version,
+                        url: info.release_url,
+                    });
+                }
             }
         });
     }

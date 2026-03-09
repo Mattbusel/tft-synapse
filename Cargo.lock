@@ -3790,6 +3790,8 @@ dependencies = [
  "clap",
  "eframe",
  "egui",
+ "reqwest",
+ "serde_json",
  "tft-advisor",
  "tft-capture",
  "tft-data",

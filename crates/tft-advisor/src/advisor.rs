@@ -6,7 +6,8 @@ use tft_types::{AugmentId, GameState, Placement, TftError};
 use tft_data::Catalog;
 use tft_ml::AugmentPolicy;
 use crate::reasoning::explain_augment;
-use crate::session::GameSession;
+use crate::round_timer::{RoundTimer, StageAwareness};
+use crate::session::{GameSession, ReviewEntry};
 use crate::metrics::AdvisorMetrics;
 use crate::shop_advisor::{ShopAdvisor, ShopRecommendation, RerollRecommendation};
 use crate::board_advisor::{BoardAdvisor, BoardRecommendation};
@@ -14,6 +15,8 @@ use crate::economy_advisor::{EconomyAdvisor, EconomyAdvice};
 use crate::carry_advisor::{CarryAdvisor, CarryCandidate};
 use crate::item_advisor::{ItemAdvisor, ItemRecommendation};
 use crate::opponent_tracker::{LobbyAnalysis, OpponentTracker};
+use crate::pool_tracker::{PoolEntry, PoolTracker};
+use crate::positioning_advisor::{BoardLayout, PositioningAdvisor};
 use tracing::info;
 
 /// A single augment recommendation with score and reasoning.
@@ -50,6 +53,14 @@ pub struct FullRecommendation {
     pub items: Vec<ItemRecommendation>,
     /// Opponent lobby analysis.
     pub lobby: LobbyAnalysis,
+    /// Stage/round awareness and upcoming key events.
+    pub stage_awareness: StageAwareness,
+    /// Post-game review: all augment decisions this session (empty during active game).
+    pub review: Vec<ReviewEntry>,
+    /// Champion pool state — remaining copies per unit.
+    pub pool: Vec<PoolEntry>,
+    /// Board positioning recommendations.
+    pub positions: BoardLayout,
 }
 
 /// The main advisor: reads state, calls policy, returns recommendations.
@@ -64,6 +75,9 @@ pub struct Advisor {
     carry_advisor: CarryAdvisor,
     item_advisor: ItemAdvisor,
     opponent_tracker: OpponentTracker,
+    round_timer: RoundTimer,
+    pool_tracker: PoolTracker,
+    positioning_advisor: PositioningAdvisor,
 }
 
 impl Advisor {
@@ -85,6 +99,9 @@ impl Advisor {
             carry_advisor: CarryAdvisor::new(),
             item_advisor: ItemAdvisor::new(),
             opponent_tracker: OpponentTracker::new(),
+            round_timer: RoundTimer::new(),
+            pool_tracker: PoolTracker::new(),
+            positioning_advisor: PositioningAdvisor::new(),
         })
     }
 
@@ -128,7 +145,11 @@ impl Advisor {
         let carries = self.carry_advisor.identify_carries(state, self.catalog)?;
         let items = self.item_advisor.advise_items(state, self.catalog)?;
         let lobby = self.opponent_tracker.analyze_lobby(state, self.catalog)?;
-        Ok(FullRecommendation { augment, shop, reroll, board, economy, carries, items, lobby })
+        let stage_awareness = self.round_timer.analyze(state);
+        let review = self.session.review_summary(self.catalog);
+        let pool = self.pool_tracker.track(state, self.catalog)?;
+        let positions = self.positioning_advisor.advise_positions(state, self.catalog)?;
+        Ok(FullRecommendation { augment, shop, reroll, board, economy, carries, items, lobby, stage_awareness, review, pool, positions })
     }
 
     /// Call after a game ends with the final placement.

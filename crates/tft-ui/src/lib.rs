@@ -8,6 +8,7 @@ pub mod overlay;
 pub mod panels;
 pub mod state;
 pub mod theme;
+pub mod tray;
 
 pub use app::TftSynapseApp;
 pub use state::UiState;

@@ -5,7 +5,8 @@ use std::sync::mpsc;
 use egui::Context;
 use tft_types::GameState;
 use tft_advisor::Advisor;
-use crate::panels::{augment_panel, carry_panel, economy_panel, item_panel, lobby_panel, stats_panel, status_bar};
+use crate::panels::{augment_panel, carry_panel, economy_panel, item_panel, lobby_panel,
+                    pool_panel, positioning_panel, review_panel, round_panel, stats_panel, status_bar};
 use crate::state::{ConnectionStatus, UiState};
 use crate::theme;
 use crate::overlay;
@@ -15,6 +16,8 @@ pub enum AppMessage {
     GameStateUpdate(GameState),
     Error(String),
     Disconnected,
+    /// A newer version is available for download.
+    UpdateAvailable { version: String, url: String },
 }
 
 pub struct TftSynapseApp {
@@ -64,6 +67,9 @@ impl TftSynapseApp {
                 }
                 AppMessage::Disconnected => {
                     self.ui_state.set_connected(ConnectionStatus::Disconnected);
+                }
+                AppMessage::UpdateAvailable { version, url } => {
+                    self.ui_state.update_available = Some((version, url));
                 }
             }
         }
@@ -153,6 +159,17 @@ impl eframe::App for TftSynapseApp {
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
+            if let Some((ref ver, ref url)) = self.ui_state.update_available {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        egui::RichText::new(format!("Update available: v{}", ver))
+                            .color(theme::SCORE_HIGH).strong().small()
+                    );
+                    ui.hyperlink_to("Download", url);
+                });
+                ui.separator();
+            }
+
             augment_panel::render(ui, self.ui_state.recommendation.as_ref());
 
             if let Some(ref full) = self.ui_state.full_recommendation {
@@ -163,11 +180,23 @@ impl eframe::App for TftSynapseApp {
                 egui::CollapsingHeader::new("Carry Targets").default_open(true).show(ui, |ui| {
                     carry_panel::render(ui, &full.carries);
                 });
+                egui::CollapsingHeader::new("Stage Awareness").default_open(true).show(ui, |ui| {
+                    round_panel::render(ui, &full.stage_awareness);
+                });
+                egui::CollapsingHeader::new("Pool Tracker").default_open(false).show(ui, |ui| {
+                    pool_panel::render(ui, &full.pool);
+                });
+                egui::CollapsingHeader::new("Positioning").default_open(false).show(ui, |ui| {
+                    positioning_panel::render(ui, &full.positions);
+                });
                 egui::CollapsingHeader::new("Items").default_open(false).show(ui, |ui| {
                     item_panel::render(ui, &full.items);
                 });
                 egui::CollapsingHeader::new("Lobby").default_open(false).show(ui, |ui| {
                     lobby_panel::render(ui, &full.lobby);
+                });
+                egui::CollapsingHeader::new("Game Review").default_open(false).show(ui, |ui| {
+                    review_panel::render(ui, &full.review);
                 });
             }
 

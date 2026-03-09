@@ -37,6 +37,10 @@ pub struct UiState {
     pub overlay_config: OverlayConfig,
     /// Set to true when overlay settings changed and need to be applied.
     pub overlay_dirty: bool,
+    /// If Some, a newer version (version, release_url) is available.
+    pub update_available: Option<(String, String)>,
+    /// True when the window is minimized to the system tray.
+    pub hidden: bool,
 }
 
 impl UiState {
