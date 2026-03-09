@@ -22,9 +22,9 @@ tft-synapse runs alongside TFT as a transparent overlay and gives you real-time 
 
 **Augment selection**
 ```
-BEST   Last Stand: strong comeback option at 28hp
-2nd    Blue Battery: solid - synergizes with your 2 Arcanists
-3rd    Scoped Weapons: situational (score: 38%)
+BEST Last Stand: strong comeback option at 28hp
+2nd Blue Battery: solid - synergizes with your 2 Arcanists
+3rd Scoped Weapons: situational (score: 38%)
 ```
 
 **Shop advisor** - shows which units to buy and whether to reroll based on your current gold, upgrade potential, and active traits.
@@ -88,13 +88,13 @@ The window is always-on-top by default. Press **F9** to toggle click-through mod
 tft-synapse.exe [OPTIONS]
 
 Options:
-  --overlay           Transparent always-on-top overlay mode
-  --manual            Manual input mode (no Live API)
-  --model-path <PATH> Path to model weights (default: ~/.tft-synapse/model.json)
-  --log-level <LEVEL> trace / debug / info / warn / error (default: info)
-  --width <PX>        Window width in pixels (default: 500)
-  --height <PX>       Window height in pixels (default: 600)
-  --help              Print help
+ --overlay Transparent always-on-top overlay mode
+ --manual Manual input mode (no Live API)
+ --model-path <PATH> Path to model weights (default: ~/.tft-synapse/model.json)
+ --log-level <LEVEL> trace / debug / info / warn / error (default: info)
+ --width <PX> Window width in pixels (default: 500)
+ --height <PX> Window height in pixels (default: 600)
+ --help Print help
 ```
 
 ---
@@ -118,14 +118,14 @@ The binary embeds all game data (augments, champions, traits) at compile time. N
 
 ```
 crates/
-  tft-types        - shared domain types, error enum, GameState
-  tft-data         - YAML catalog embedded at compile time via include_str!
-  tft-game-state   - feature extraction (512-dim f32 vector per game state)
-  tft-ml           - neural net + Thompson Sampling bandit, online learning
-  tft-capture      - Riot Live API reader and mock reader for testing
-  tft-advisor      - decision engine, session tracking, reasoning text
-  tft-ui           - egui desktop GUI (score bars, stats panel, status bar)
-  tft-synapse      - binary entrypoint
+ tft-types - shared domain types, error enum, GameState
+ tft-data - YAML catalog embedded at compile time via include_str!
+ tft-game-state - feature extraction (512-dim f32 vector per game state)
+ tft-ml - neural net + Thompson Sampling bandit, online learning
+ tft-capture - Riot Live API reader and mock reader for testing
+ tft-advisor - decision engine, session tracking, reasoning text
+ tft-ui - egui desktop GUI (score bars, stats panel, status bar)
+ tft-synapse - binary entrypoint
 ```
 
 Zero external ML dependencies. The neural network is implemented in pure Rust.
