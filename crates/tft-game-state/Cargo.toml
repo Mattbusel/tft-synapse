@@ -1,0 +1,20 @@
+[package]
+name = "tft-game-state"
+version = "0.1.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+tft-types = { path = "../tft-types" }
+tft-data = { path = "../tft-data" }
+serde = { workspace = true }
+proptest = { workspace = true, optional = true }
+
+[features]
+default = []
+proptest = ["dep:proptest"]
+
+[dev-dependencies]
+proptest = { workspace = true }

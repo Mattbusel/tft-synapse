@@ -1,0 +1,14 @@
+[package]
+name = "tft-data"
+version = "0.1.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+tft-types = { path = "../tft-types" }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

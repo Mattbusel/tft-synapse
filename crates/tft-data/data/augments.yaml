@@ -1,0 +1,82 @@
+meta_version: "14.23"
+augments:
+  - name: "Blue Battery"
+    tier: "S"
+    base_score: 88.0
+    tags: ["AP", "mana", "scaling"]
+  - name: "Jeweled Lotus"
+    tier: "S-"
+    base_score: 86.0
+    tags: ["AP", "crit", "scaling"]
+  - name: "First Aid Kit"
+    tier: "B+"
+    base_score: 78.0
+    tags: ["healing", "sustain"]
+  - name: "Rich Get Richer"
+    tier: "A"
+    base_score: 84.0
+    tags: ["econ", "early"]
+  - name: "Component Grab Bag"
+    tier: "A"
+    base_score: 80.0
+    tags: ["items", "early", "flexible"]
+  - name: "Scoped Weapons"
+    tier: "B"
+    base_score: 70.0
+    tags: ["AD", "backline"]
+  - name: "Sunfire Board"
+    tier: "A-"
+    base_score: 82.0
+    tags: ["HP", "burn", "early"]
+  - name: "Last Stand"
+    tier: "S"
+    base_score: 90.0
+    tags: ["comeback", "late"]
+  - name: "Tiny Power"
+    tier: "B"
+    base_score: 68.0
+    tags: ["AD", "early"]
+  - name: "Portable Forge"
+    tier: "A+"
+    base_score: 85.0
+    tags: ["items", "anvil"]
+  - name: "Cybernetic Bulk"
+    tier: "B+"
+    base_score: 72.0
+    tags: ["Tank", "HP"]
+  - name: "Cybernetic Leech"
+    tier: "A-"
+    base_score: 79.0
+    tags: ["Tank", "sustain"]
+  - name: "Knife's Edge"
+    tier: "A"
+    base_score: 81.0
+    tags: ["AD", "frontline"]
+  - name: "Titanic Force"
+    tier: "S-"
+    base_score: 87.0
+    tags: ["Tank", "AD", "scaling"]
+  - name: "Spellblade"
+    tier: "A+"
+    base_score: 83.0
+    tags: ["AP", "AD", "hybrid"]
+  - name: "Meditation"
+    tier: "B+"
+    base_score: 75.0
+    tags: ["AP", "mana"]
+  - name: "Nourish"
+    tier: "B"
+    base_score: 69.0
+    tags: ["healing", "econ"]
+  - name: "Urf's Grab Bag"
+    tier: "A"
+    base_score: 80.0
+    tags: ["items", "flexible"]
+  - name: "Stand United"
+    tier: "S"
+    base_score: 91.0
+    tags: ["AP", "AD", "late", "scaling"]
+  - name: "Winnings"
+    tier: "A-"
+    base_score: 77.0
+    tags: ["econ", "streak"]

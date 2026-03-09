@@ -1,0 +1,19 @@
+[package]
+name = "tft-capture"
+version = "0.1.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+tft-types = { path = "../tft-types" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+tokio = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+# windows crate for screen capture - feature-gated for non-windows builds

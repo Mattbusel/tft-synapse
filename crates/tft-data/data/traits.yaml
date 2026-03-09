@@ -1,0 +1,53 @@
+meta_version: "14.23"
+traits:
+  - name: "Arcanist"
+    type: "AP"
+    breakpoints: [2, 4, 6, 8]
+  - name: "Gunner"
+    type: "AD"
+    breakpoints: [2, 4, 6]
+  - name: "Bruiser"
+    type: "Tank"
+    breakpoints: [2, 4, 6]
+  - name: "Guardian"
+    type: "Tank"
+    breakpoints: [2, 4]
+  - name: "Challenger"
+    type: "AD"
+    breakpoints: [2, 4, 6, 8]
+  - name: "Sniper"
+    type: "AD"
+    breakpoints: [2, 4, 6]
+  - name: "Scholar"
+    type: "AP"
+    breakpoints: [2, 4]
+  - name: "Enforcer"
+    type: "Utility"
+    breakpoints: [2, 4, 6]
+  - name: "Scrap"
+    type: "Utility"
+    breakpoints: [3, 6, 9]
+  - name: "Yordle"
+    type: "Utility"
+    breakpoints: [3, 6, 9]
+  - name: "Enchanter"
+    type: "AP"
+    breakpoints: [2, 4]
+  - name: "Innovator"
+    type: "Utility"
+    breakpoints: [3, 5, 7]
+  - name: "Rebel"
+    type: "AD"
+    breakpoints: [3, 6, 9]
+  - name: "Noxus"
+    type: "AD"
+    breakpoints: [3, 6]
+  - name: "Crystal"
+    type: "Tank"
+    breakpoints: [2, 4]
+  - name: "Demacia"
+    type: "Utility"
+    breakpoints: [3, 6]
+  - name: "Brawler"
+    type: "Tank"
+    breakpoints: [2, 4, 6]

@@ -1,0 +1,18 @@
+[package]
+name = "tft-ui"
+version = "0.1.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+tft-types = { path = "../tft-types" }
+tft-data = { path = "../tft-data" }
+tft-advisor = { path = "../tft-advisor" }
+tft-capture = { path = "../tft-capture" }
+eframe = { workspace = true }
+egui = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }

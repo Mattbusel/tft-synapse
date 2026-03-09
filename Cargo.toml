@@ -1,11 +1,42 @@
-[package]
-name = "tft-synapse"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+    "crates/tft-types",
+    "crates/tft-data",
+    "crates/tft-game-state",
+    "crates/tft-ml",
+    "crates/tft-capture",
+    "crates/tft-advisor",
+    "crates/tft-ui",
+    "crates/tft-synapse",
+]
+resolver = "2"
 
-[dependencies]
-anyhow = "1"
-clap = { version = "4", features = ["derive"] }
-serde = { version = "1", features = ["derive"] }
+[workspace.dependencies]
+tokio = { version = "1.40", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 serde_yaml = "0.9"
-serde_json = "1"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+candle-core = "0.8"
+candle-nn = "0.8"
+safetensors = "0.4"
+eframe = "0.29"
+egui = "0.29"
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+image = "0.25"
+clap = { version = "4.5", features = ["derive"] }
+proptest = "1.4"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"

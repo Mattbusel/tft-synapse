@@ -1,0 +1,19 @@
+[package]
+name = "tft-ml"
+version = "0.1.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+tft-types = { path = "../tft-types" }
+tft-data = { path = "../tft-data" }
+tft-game-state = { path = "../tft-game-state" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }

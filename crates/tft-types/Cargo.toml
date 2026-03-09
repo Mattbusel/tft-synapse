@@ -1,0 +1,13 @@
+[package]
+name = "tft-types"
+version = "0.1.0"
+edition = "2021"
+description = "Shared domain types for the TFT Synapse platform"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

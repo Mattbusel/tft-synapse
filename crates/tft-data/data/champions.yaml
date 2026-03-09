@@ -1,0 +1,62 @@
+meta_version: "14.23"
+champions:
+  - name: "Jinx"
+    cost: 3
+    traits: ["Gunner", "Rebel"]
+  - name: "Vi"
+    cost: 3
+    traits: ["Enforcer", "Bruiser"]
+  - name: "Lux"
+    cost: 4
+    traits: ["Arcanist", "Demacia"]
+  - name: "Ekko"
+    cost: 4
+    traits: ["Arcanist", "Scrap"]
+  - name: "Jayce"
+    cost: 5
+    traits: ["Enforcer", "Transformer"]
+  - name: "Ashe"
+    cost: 3
+    traits: ["Sniper", "Crystal"]
+  - name: "Katarina"
+    cost: 2
+    traits: ["Challenger", "Noxus"]
+  - name: "Sett"
+    cost: 4
+    traits: ["Bruiser", "Scrap"]
+  - name: "Caitlyn"
+    cost: 1
+    traits: ["Sniper", "Enforcer"]
+  - name: "Thresh"
+    cost: 2
+    traits: ["Guardian", "Enforcer"]
+  - name: "Ziggs"
+    cost: 1
+    traits: ["Arcanist", "Scrap"]
+  - name: "Sivir"
+    cost: 2
+    traits: ["Gunner", "Scrap"]
+  - name: "Blitzcrank"
+    cost: 3
+    traits: ["Brawler", "Scrap"]
+  - name: "Janna"
+    cost: 2
+    traits: ["Scrap", "Scholar"]
+  - name: "Warwick"
+    cost: 2
+    traits: ["Challenger", "Scrap"]
+  - name: "Poppy"
+    cost: 1
+    traits: ["Guardian", "Yordle"]
+  - name: "Tristana"
+    cost: 3
+    traits: ["Gunner", "Yordle"]
+  - name: "Vex"
+    cost: 3
+    traits: ["Scholar", "Yordle"]
+  - name: "Lulu"
+    cost: 4
+    traits: ["Enchanter", "Yordle"]
+  - name: "Heimerdinger"
+    cost: 5
+    traits: ["Innovator", "Yordle"]

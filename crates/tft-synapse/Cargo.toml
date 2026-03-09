@@ -1,0 +1,25 @@
+[package]
+name = "tft-synapse"
+version = "0.2.0"
+edition = "2021"
+description = "TFT Synapse - AI-powered TFT advisor and auto-player platform"
+
+[[bin]]
+name = "tft-synapse"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+tft-types = { path = "../tft-types" }
+tft-data = { path = "../tft-data" }
+tft-advisor = { path = "../tft-advisor" }
+tft-capture = { path = "../tft-capture" }
+tft-ui = { path = "../tft-ui" }
+eframe = { workspace = true }
+egui = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
