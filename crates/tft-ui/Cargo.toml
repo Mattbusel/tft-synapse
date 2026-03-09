@@ -16,3 +16,12 @@ egui = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
+# dirs-next: cross-platform home directory lookup for export paths
+dirs-next = "2.0"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+# windows: Win32 API bindings for overlay transparency and click-through
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
+] }

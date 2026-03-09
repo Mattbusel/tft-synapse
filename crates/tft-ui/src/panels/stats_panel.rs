@@ -5,7 +5,16 @@ use tft_advisor::AdvisorMetrics;
 use crate::theme;
 use crate::state::ConnectionStatus;
 
-pub fn render(ui: &mut Ui, metrics: &AdvisorMetrics, games_trained: u32, status: Option<&ConnectionStatus>) {
+/// Render the stats panel.
+///
+/// # Returns
+/// `true` if the "Export CSV" button was clicked this frame, `false` otherwise.
+pub fn render(
+    ui: &mut Ui,
+    metrics: &AdvisorMetrics,
+    games_trained: u32,
+    status: Option<&ConnectionStatus>,
+) -> bool {
     ui.heading(RichText::new("Stats").color(theme::ACCENT_BLUE));
     ui.separator();
 
@@ -27,9 +36,15 @@ pub fn render(ui: &mut Ui, metrics: &AdvisorMetrics, games_trained: u32, status:
     if metrics.games_played > 0 {
         ui.add_space(4.0);
         ui.label(RichText::new(format!("Avg placement: {:.1}", metrics.avg_placement())).color(theme::TEXT_PRIMARY));
-        ui.label(RichText::new(format!("Top-4 rate: {:.0}%", metrics.top_four_rate() * 100.0))
-            .color(if metrics.top_four_rate() >= 0.5 { theme::SCORE_HIGH } else { theme::SCORE_MID }));
+        ui.label(
+            RichText::new(format!("Top-4 rate: {:.0}%", metrics.top_four_rate() * 100.0))
+                .color(if metrics.top_four_rate() >= 0.5 { theme::SCORE_HIGH } else { theme::SCORE_MID }),
+        );
     }
+
+    ui.add_space(8.0);
+    ui.separator();
+    ui.button(RichText::new("Export CSV").color(theme::ACCENT_BLUE)).clicked()
 }
 
 #[cfg(test)]

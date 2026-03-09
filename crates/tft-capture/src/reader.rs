@@ -5,6 +5,7 @@ pub enum ReaderMode {
     LiveApi,
     Mock,
     Manual,
+    ScreenCapture,
 }
 
 /// Trait for reading live game state.

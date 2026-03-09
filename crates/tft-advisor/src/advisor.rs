@@ -8,6 +8,8 @@ use tft_ml::AugmentPolicy;
 use crate::reasoning::explain_augment;
 use crate::session::GameSession;
 use crate::metrics::AdvisorMetrics;
+use crate::shop_advisor::{ShopAdvisor, ShopRecommendation, RerollRecommendation};
+use crate::board_advisor::{BoardAdvisor, BoardRecommendation};
 use tracing::info;
 
 /// A single augment recommendation with score and reasoning.
@@ -25,12 +27,27 @@ pub struct Recommendation {
     pub top_pick: AugmentId,
 }
 
+/// A complete recommendation covering augment, shop, reroll, and board decisions.
+#[derive(Debug)]
+pub struct FullRecommendation {
+    /// Augment pick recommendation (present only during augment phase).
+    pub augment: Option<Recommendation>,
+    /// Per-slot shop buy recommendations.
+    pub shop: Vec<ShopRecommendation>,
+    /// Reroll decision.
+    pub reroll: RerollRecommendation,
+    /// Board composition analysis.
+    pub board: BoardRecommendation,
+}
+
 /// The main advisor: reads state, calls policy, returns recommendations.
 pub struct Advisor {
     policy: AugmentPolicy,
     catalog: &'static Catalog,
     session: GameSession,
     pub metrics: AdvisorMetrics,
+    shop_advisor: ShopAdvisor,
+    board_advisor: BoardAdvisor,
 }
 
 impl Advisor {
@@ -46,6 +63,8 @@ impl Advisor {
             catalog,
             session: GameSession::new(game_id),
             metrics: AdvisorMetrics::new(),
+            shop_advisor: ShopAdvisor::new(),
+            board_advisor: BoardAdvisor::new(),
         })
     }
 
@@ -74,6 +93,18 @@ impl Advisor {
 
         info!("Advise: top pick {:?} score={:.3}", top_pick, ranked[0].score);
         Ok(Some(Recommendation { ranked, top_pick }))
+    }
+
+    /// Produce a full recommendation covering augment, shop, reroll, and board.
+    ///
+    /// This is the primary entry point for the complete decision pipeline.
+    /// The existing `advise()` method is retained for backwards compatibility.
+    pub fn advise_full(&mut self, state: &GameState) -> Result<FullRecommendation, TftError> {
+        let augment = self.advise(state)?;
+        let shop = self.shop_advisor.advise_buys(state, self.catalog)?;
+        let reroll = self.shop_advisor.advise_reroll(state);
+        let board = self.board_advisor.analyze_board(state, self.catalog)?;
+        Ok(FullRecommendation { augment, shop, reroll, board })
     }
 
     /// Call after a game ends with the final placement.
@@ -181,5 +212,49 @@ mod tests {
         let state = make_state_with_choices();
         advisor.advise(&state).expect("advise failed in test");
         assert_eq!(advisor.session().decision_count(), 1);
+    }
+
+    // ── advise_full ───────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_advise_full_returns_ok() {
+        let mut advisor = make_advisor();
+        let state = make_state_with_choices();
+        let result = advisor.advise_full(&state);
+        assert!(result.is_ok(), "advise_full failed: {:?}", result.err());
+    }
+
+    #[test]
+    fn test_advise_full_augment_present_in_augment_phase() {
+        let mut advisor = make_advisor();
+        let state = make_state_with_choices();
+        let full = advisor.advise_full(&state).expect("advise_full failed in test");
+        assert!(full.augment.is_some(), "augment should be present during augment phase");
+    }
+
+    #[test]
+    fn test_advise_full_augment_absent_outside_augment_phase() {
+        let mut advisor = make_advisor();
+        let mut state = make_state_with_choices();
+        state.augment_choices = None;
+        let full = advisor.advise_full(&state).expect("advise_full failed in test");
+        assert!(full.augment.is_none());
+    }
+
+    #[test]
+    fn test_advise_full_board_recommendation_present() {
+        let mut advisor = make_advisor();
+        let state = make_state_with_choices();
+        let full = advisor.advise_full(&state).expect("advise_full failed in test");
+        // board recommendation struct always present (even for empty board)
+        let _ = &full.board;
+    }
+
+    #[test]
+    fn test_advise_full_reroll_recommendation_present() {
+        let mut advisor = make_advisor();
+        let state = make_state_with_choices();
+        let full = advisor.advise_full(&state).expect("advise_full failed in test");
+        assert!(!full.reroll.reason.is_empty());
     }
 }
