@@ -4,7 +4,7 @@
 
 [![Rust](https://img.shields.io/badge/built%20with-Rust-000000?style=flat&logo=rust)](https://www.rust-lang.org/)
 [![Release](https://img.shields.io/github/v/release/Mattbusel/tft-synapse?style=flat)](https://github.com/Mattbusel/tft-synapse/releases/latest)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=flat)](LICENSE)
+[![CI](https://github.com/Mattbusel/tft-synapse/actions/workflows/ci.yml/badge.svg)](https://github.com/Mattbusel/tft-synapse/actions/workflows/ci.yml)
 
 ---
 
@@ -53,15 +53,13 @@ BEST Last Stand: strong comeback option at 28hp
 
 **Auto-update notifier** - checks GitHub Releases on startup and shows a download link if a newer version is available.
 
-**Stats panel** - tracks placement history, top-four rate, first-place rate, and total games the model has trained on. Export to CSV at any time.
-
 **F9 toggle** - switches the overlay between interactive mode and click-through mode so it never blocks gameplay.
 
 ---
 
 ## How the AI works
 
-tft-synapse ships with zero training data. It starts as a near-random policy and gets smarter every game you play.
+The rule-based advisors (shop, board, economy, items, positioning) work from game one using the embedded YAML catalog. Augment ranking is the learned part, and it ships with zero training data. It starts as a near-random policy and gets smarter every game you play.
 
 **Architecture: contextual bandit + shallow neural network**
 
@@ -158,7 +156,7 @@ Zero external ML dependencies. The neural network is implemented in pure Rust.
 
 - Zero panics in production code paths (`unwrap`, `expect`, `panic!` denied by clippy lint)
 - Typed error enum (`TftError`) covering every failure surface
-- 488 unit tests across all crates, all passing
+- Roughly 500 unit tests across the workspace; CI runs `cargo fmt --check`, `cargo clippy -D warnings` and `cargo test` on every push
 - Game data baked into the binary at compile time - single file distribution
 - Model weights serialized as JSON to `~/.tft-synapse/model.json`
 - Patch hot-reload: drop `~/.tft-synapse/catalog.json` to override embedded catalog
@@ -196,9 +194,3 @@ Zero external ML dependencies. The neural network is implemented in pure Rust.
 - **Multi-game trend analysis** - track which augments are winning for your playstyle over time
 - **Discord webhook** - post post-game stats to a Discord channel automatically
 - **3-cost/4-cost pool probability** - estimate odds of hitting a unit given known pool depletion
-
----
-
-## License
-
-MIT
