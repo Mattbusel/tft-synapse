@@ -4,7 +4,7 @@ use clap::Parser;
 #[command(
     name = "tft-synapse",
     about = "AI-powered TFT advisor - real-time augment recommendations and auto-play",
-    version = "0.2.0"
+    version
 )]
 pub struct Args {
     /// Run as an always-on-top overlay (transparent window over TFT)

@@ -1,14 +1,21 @@
 [package]
-name = "tft-game-state"
-version = "0.1.0"
-edition = "2021"
+name = "tft-synapse-game-state"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Game state model for TFT Synapse."
+
+[lib]
+name = "tft_game_state"
 
 [lints]
 workspace = true
 
 [dependencies]
-tft-types = { path = "../tft-types" }
-tft-data = { path = "../tft-data" }
+tft-types = { package = "tft-synapse-types", version = "0.6.0", path = "../tft-types" }
+tft-data = { package = "tft-synapse-data", version = "0.6.0", path = "../tft-data" }
 serde = { workspace = true }
 tracing = { workspace = true }
 proptest = { workspace = true, optional = true }

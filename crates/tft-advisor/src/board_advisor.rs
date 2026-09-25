@@ -101,7 +101,7 @@ impl BoardAdvisor {
             .collect();
 
         // Sort by current_count descending for stable output
-        trait_statuses.sort_by(|a, b| b.current_count.cmp(&a.current_count));
+        trait_statuses.sort_by_key(|t| std::cmp::Reverse(t.current_count));
 
         // Strongest synergy: trait at highest current breakpoint
         let strongest_synergy = trait_statuses.first().map(|ts| ts.trait_name.clone());
