@@ -1,15 +1,22 @@
 [package]
-name = "tft-ml"
-version = "0.1.0"
-edition = "2021"
+name = "tft-synapse-ml"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "The learning model behind TFT Synapse recommendations."
+
+[lib]
+name = "tft_ml"
 
 [lints]
 workspace = true
 
 [dependencies]
-tft-types = { path = "../tft-types" }
-tft-data = { path = "../tft-data" }
-tft-game-state = { path = "../tft-game-state" }
+tft-types = { package = "tft-synapse-types", version = "0.6.0", path = "../tft-types" }
+tft-data = { package = "tft-synapse-data", version = "0.6.0", path = "../tft-data" }
+tft-game-state = { package = "tft-synapse-game-state", version = "0.6.0", path = "../tft-game-state" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

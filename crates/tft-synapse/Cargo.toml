@@ -1,8 +1,14 @@
 [package]
 name = "tft-synapse"
-version = "0.5.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "TFT Synapse - AI-powered TFT advisor and auto-player platform"
+readme = "../../README.md"
+keywords = ["tft", "teamfight-tactics", "advisor", "egui"]
+categories = ["games"]
 
 [[bin]]
 name = "tft-synapse"
@@ -12,11 +18,11 @@ path = "src/main.rs"
 workspace = true
 
 [dependencies]
-tft-types = { path = "../tft-types" }
-tft-data = { path = "../tft-data" }
-tft-advisor = { path = "../tft-advisor" }
-tft-capture = { path = "../tft-capture" }
-tft-ui = { path = "../tft-ui" }
+tft-types = { package = "tft-synapse-types", version = "0.6.0", path = "../tft-types" }
+tft-data = { package = "tft-synapse-data", version = "0.6.0", path = "../tft-data" }
+tft-advisor = { package = "tft-synapse-advisor", version = "0.6.0", path = "../tft-advisor" }
+tft-capture = { package = "tft-synapse-capture", version = "0.6.0", path = "../tft-capture" }
+tft-ui = { package = "tft-synapse-ui", version = "0.6.0", path = "../tft-ui" }
 eframe = { workspace = true }
 egui = { workspace = true }
 clap = { workspace = true }

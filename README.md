@@ -10,9 +10,32 @@
 
 ## Download
 
-[**tft-synapse.exe**](https://github.com/Mattbusel/tft-synapse/releases/latest) - Windows x64, 8.1MB, no installer required.
+Get the latest build from
+[GitHub Releases](https://github.com/Mattbusel/tft-synapse/releases/latest)
+and pick the file for your computer:
 
-Run it. Start a TFT game. That is it.
+| You have | Download |
+| --- | --- |
+| Windows 10 or 11 (most players) | `tft-synapse-vX.Y.Z-x86_64-pc-windows-msvc.zip` |
+| Mac with Apple Silicon (M1 and later) | `tft-synapse-vX.Y.Z-aarch64-apple-darwin.tar.gz` |
+| Mac with an Intel chip | `tft-synapse-vX.Y.Z-x86_64-apple-darwin.tar.gz` |
+| Linux, 64-bit | `tft-synapse-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz` |
+
+Unzip it and run `tft-synapse` (`tft-synapse.exe` on Windows). No installer.
+Start a TFT game. That is it.
+
+The downloads are not signed, so your computer will be cautious the first
+time. On Windows, SmartScreen may say "unknown publisher": click **More info**,
+then **Run anyway**. On a Mac, right-click the program and choose **Open**.
+`SHA256SUMS.txt` on the release page lists every file's checksum.
+
+If you have Rust installed, you can instead run:
+
+```bash
+cargo install tft-synapse
+```
+
+To build it yourself, see [Build from source](#build-from-source).
 
 ---
 
@@ -88,9 +111,9 @@ The status bar shows which source is active.
 
 **Requirements:** Windows 10/11 x64. DirectX 11 (built into Windows, no download needed).
 
-**Step 1:** Download [tft-synapse.exe](https://github.com/Mattbusel/tft-synapse/releases/latest)
+**Step 1:** Download the Windows zip from [Releases](https://github.com/Mattbusel/tft-synapse/releases/latest) and unzip it
 
-**Step 2:** Run it
+**Step 2:** Run `tft-synapse.exe`
 
 **Step 3:** Start a TFT game. The status bar shows "Connected" once the Live API is detected.
 

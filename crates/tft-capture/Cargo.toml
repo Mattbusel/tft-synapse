@@ -1,13 +1,20 @@
 [package]
-name = "tft-capture"
-version = "0.1.0"
-edition = "2021"
+name = "tft-synapse-capture"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Live Client API and screen capture input for TFT Synapse."
+
+[lib]
+name = "tft_capture"
 
 [lints]
 workspace = true
 
 [dependencies]
-tft-types = { path = "../tft-types" }
+tft-types = { package = "tft-synapse-types", version = "0.6.0", path = "../tft-types" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
