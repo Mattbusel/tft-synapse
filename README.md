@@ -1,219 +1,73 @@
 # tft-synapse
 
-**AI-powered Teamfight Tactics advisor. Real-time recommendations across every decision that learn from every game you play.**
+**A free Teamfight Tactics (TFT) helper for Windows: a small always-on-top window that reads your gold, level and HP from the running game and tells you when to save, level up or roll down, what level to aim for, and when the next augment, carousel and PvE round come.**
 
-[![Rust](https://img.shields.io/badge/built%20with-Rust-000000?style=flat&logo=rust)](https://www.rust-lang.org/)
+For TFT players who want a second opinion on economy and leveling while they play. No login and no API key: it only reads the data the game itself serves on your own PC.
+
 [![Release](https://img.shields.io/github/v/release/Mattbusel/tft-synapse?style=flat)](https://github.com/Mattbusel/tft-synapse/releases/latest)
 [![CI](https://github.com/Mattbusel/tft-synapse/actions/workflows/ci.yml/badge.svg)](https://github.com/Mattbusel/tft-synapse/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/tft-synapse.svg)](https://crates.io/crates/tft-synapse)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
----
+> **Early version, read this first.** Riot's local game API does not send your board, shop, items or augment choices. So in a real game the economy, stage and lobby advice work, and the augment, shop, board, item, carry and positioning panels stay empty. The learning model for augments is in the code but the app does not record placements yet. Details in [docs/REFERENCE.md](docs/REFERENCE.md).
 
 ## Download
 
-Get the latest build from
-[GitHub Releases](https://github.com/Mattbusel/tft-synapse/releases/latest)
-and pick the file for your computer:
+### [Download for Windows (.exe)](https://github.com/Mattbusel/tft-synapse/releases/latest/download/tft-synapse-windows-x64.exe)
 
-| You have | Download |
-| --- | --- |
-| Windows 10 or 11 (most players) | `tft-synapse-vX.Y.Z-x86_64-pc-windows-msvc.zip` |
-| Mac with Apple Silicon (M1 and later) | `tft-synapse-vX.Y.Z-aarch64-apple-darwin.tar.gz` |
-| Mac with an Intel chip | `tft-synapse-vX.Y.Z-x86_64-apple-darwin.tar.gz` |
-| Linux, 64-bit | `tft-synapse-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz` |
+One file, no installer. Windows may say "unknown publisher" because it is unsigned: click **More info**, then **Run anyway**.
 
-Unzip it and run `tft-synapse` (`tft-synapse.exe` on Windows). No installer.
-Start a TFT game. That is it.
+| Also | |
+|---|---|
+| macOS (Apple Silicon or Intel), Linux | archives on the [Releases](https://github.com/Mattbusel/tft-synapse/releases/latest) page, with `SHA256SUMS.txt` |
+| With Rust installed | `cargo install tft-synapse` |
 
-The downloads are not signed, so your computer will be cautious the first
-time. On Windows, SmartScreen may say "unknown publisher": click **More info**,
-then **Run anyway**. On a Mac, right-click the program and choose **Open**.
-`SHA256SUMS.txt` on the release page lists every file's checksum.
+## How it works
 
-If you have Rust installed, you can instead run:
+<img alt="Diagram: every half second tft-synapse asks the running TFT game for its state through Riot's local Live Client Data API at 127.0.0.1:2999. It reads gold, level, HP, the stage estimated from game time, and the lobby's names, HP and levels. Board, bench, shop, items and augment choices are not in the API and stay empty. The window shows economy advice, the target level with the next augment, carousel and PvE rounds, and each lobby player's HP. If no game is running at startup, Windows falls back to reading HP, gold and round from screen pixels, and macOS or Linux show a demo state." src="docs/img/how-it-works.svg" width="100%">
 
-```bash
-cargo install tft-synapse
+## Examples
+
+The advice it gives, from the real advisor code (`cargo run -p tft-synapse-advisor --example advise`), for three game states that carry only what the game API provides:
+
+```text
+Stage 2-1  gold 18  HP 92  level 4
+  Economy: SAVE GOLD. Save 2 more gold to reach the 20 interest threshold
+  Target level 5 (behind). Augment this round: pick carefully
+  In 0 round(s): Stage 2 carousel
+  In 0 round(s): First augment choice
+  In 0 round(s): Target level 4 by stage 2-1
+
+Stage 3-2  gold 52  HP 64  level 6
+  Economy: LEVEL UP. Gold at interest cap (52); leveling up from 6 improves shop odds
+  Target level 6. Augment this round: pick carefully
+  In 0 round(s): Second augment choice
+  In 3 round(s): PvE: Raptors
+  In 9 round(s): Stage 4 carousel
+
+Stage 4-5  gold 34  HP 22  level 7
+  Economy: ROLL DOWN. Low HP (22): roll to find upgrades urgently
+  Target level 8 (behind). Roll down: you're behind on levels
+  In 0 round(s): PvE: Dragon / Baron
+  In 0 round(s): Target level 8 by stage 4-5
+  In 6 round(s): Stage 5 carousel
 ```
 
-To build it yourself, see [Build from source](#build-from-source).
+The window shows the same lines in its Economy and Stage Awareness panels, plus the lobby's HP.
 
----
+## Use it in 3 steps
 
-## What it does
+1. **Start a TFT game** and wait until you are in the match.
+2. **Run `tft-synapse.exe`.** The status bar shows the stage, HP, gold and level it read.
+3. **Keep it beside or over the game.** Press **F9** in the window to let clicks pass through to the game; Alt+Tab back and press F9 again to turn that off. Opacity is under Overlay Settings.
 
-tft-synapse runs alongside TFT as a transparent overlay and gives you real-time recommendations across all major decisions.
+Start it after the game has loaded: if no game answers at startup, it uses a rough screen-pixel reader for the whole session instead. `tft-synapse --help` lists the options (window size, log level, model path).
 
-**Augment selection**
-```
-BEST Last Stand: strong comeback option at 28hp
-2nd Blue Battery: solid - synergizes with your 2 Arcanists
-3rd Scoped Weapons: situational (score: 38%)
-```
+## Documentation
 
-**Shop advisor** - shows which units to buy and whether to reroll based on your current gold, upgrade potential, and active traits.
+| Read this | For |
+|---|---|
+| [docs/REFERENCE.md](docs/REFERENCE.md) | Detection chain, what each panel needs, the learning model, command line, game data and `catalog.json`, building from source, workspace layout, history |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes |
 
-**Board advisor** - scores your composition coherence and recommends swaps to strengthen your trait synergies.
-
-**Economy advisor** - tells you whether to save, level up, roll down, or maintain your streak based on your current HP, gold, and streak state. Tracks interest thresholds so you always know how far you are from the next 10g bracket.
-
-**Carry identification** - finds the top 3 carry targets to build toward 3-star, scored by copies already held across board, bench, and shop, weighted by unit cost and star level.
-
-**Item advisor** - matches each item you hold to the best champion on your board based on trait alignment. AP items to Arcanists, AD/crit to Gunners, tank items to frontline.
-
-**Opponent tracker** - reads the lobby from the Live API, flags contested traits, and suggests a pivot if 3+ players are running the same comp as you.
-
-**Patch hot-reload** - drop a `~/.tft-synapse/catalog.json` file to override the embedded catalog without reinstalling. Update champions and augments when patches drop.
-
-**Stats panel** - tracks placement history, top-four rate, first-place rate, and total games the model has trained on. Export to CSV at any time.
-
-**Champion pool tracker** - shows how many copies of each unit remain in the shared pool. Flags exhausted and critical units so you know when a comp is contested before committing to it.
-
-**Positioning advisor** - classifies every unit on your board as frontline, carry, secondary carry, or support, then assigns recommended hex positions. Warns you if your board has no frontline or is carry-starved.
-
-**Stage awareness** - tracks the current stage and round, recommends your target level, and shows the next 3 key events (augments, carousels, PvE rounds) with how many rounds away they are.
-
-**Post-game review** - after each game, shows a breakdown of every augment decision you made: what you chose, what the model scored it, and what the alternatives were.
-
-**Auto-update notifier** - checks GitHub Releases on startup and shows a download link if a newer version is available.
-
-**F9 toggle** - switches the overlay between interactive mode and click-through mode so it never blocks gameplay.
-
----
-
-## How the AI works
-
-The rule-based advisors (shop, board, economy, items, positioning) work from game one using the embedded YAML catalog. Augment ranking is the learned part, and it ships with zero training data. It starts as a near-random policy and gets smarter every game you play.
-
-**Architecture: contextual bandit + shallow neural network**
-
-- A 3-layer neural net maps your current board state (champions, traits, gold, HP, level, augments held) to a score for each augment in the catalog
-- Thompson Sampling drives exploration early on, gradually deferring to the learned net as more games accumulate
-- After each game your final placement is converted to a reward signal (1st = 1.0, 8th = 0.0) and a mini-batch gradient update runs against a circular replay buffer
-- Weights are saved to `~/.tft-synapse/model.json` after every game and loaded automatically on the next launch
-
-The model improves continuously. After 20-30 games it starts reflecting real patterns. After 100+ games it is personalized to your playstyle and the current meta.
-
----
-
-## Game state detection
-
-tft-synapse uses a three-tier detection chain:
-
-1. **Riot Games Live Client Data API** - a local HTTP server TFT runs on `localhost:2999`. No API key required. This is the primary source and gives full game state.
-2. **Screen capture fallback** - if the Live API is unavailable, Win32 BitBlt captures HP and gold directly from the screen.
-3. **Mock mode** - used when no game is running, so the UI stays responsive for testing.
-
-The status bar shows which source is active.
-
----
-
-## Getting started
-
-**Requirements:** Windows 10/11 x64. DirectX 11 (built into Windows, no download needed).
-
-**Step 1:** Download the Windows zip from [Releases](https://github.com/Mattbusel/tft-synapse/releases/latest) and unzip it
-
-**Step 2:** Run `tft-synapse.exe`
-
-**Step 3:** Start a TFT game. The status bar shows "Connected" once the Live API is detected.
-
-**Step 4:** When augment selection appears, ranked recommendations show automatically.
-
-**Step 5:** After each game, your placement is recorded and the model updates.
-
-The window is always-on-top by default. Press **F9** to toggle click-through mode when you need to interact with the game underneath. You can resize it freely.
-
----
-
-## CLI options
-
-```
-tft-synapse.exe [OPTIONS]
-
-Options:
- --overlay Transparent always-on-top overlay mode
- --manual Manual input mode (no Live API)
- --model-path <PATH> Path to model weights (default: ~/.tft-synapse/model.json)
- --log-level <LEVEL> trace / debug / info / warn / error (default: info)
- --width <PX> Window width in pixels (default: 500)
- --height <PX> Window height in pixels (default: 600)
- --help Print help
-```
-
----
-
-## Build from source
-
-Requires Rust 1.75+ and the MSVC toolchain on Windows.
-
-```bash
-git clone https://github.com/Mattbusel/tft-synapse
-cd tft-synapse
-cargo build --release
-# binary at target/release/tft-synapse.exe
-```
-
-The binary embeds all game data (augments, champions, traits, items) at compile time. No external data files needed. To override the catalog without rebuilding, place a `catalog.json` in `~/.tft-synapse/` and it will be loaded at startup instead.
-
----
-
-## Workspace structure
-
-```
-crates/
- tft-types - shared domain types, error enum, GameState
- tft-data - YAML catalog embedded at compile time via include_str!
- tft-game-state - feature extraction (512-dim f32 vector per game state)
- tft-ml - neural net + Thompson Sampling bandit, online learning
- tft-capture - Riot Live API reader and mock reader for testing
- tft-advisor - decision engine, session tracking, reasoning text
- tft-ui - egui desktop GUI (score bars, stats panel, status bar)
- tft-synapse - binary entrypoint
-```
-
-Zero external ML dependencies. The neural network is implemented in pure Rust.
-
----
-
-## Engineering
-
-- Zero panics in production code paths (`unwrap`, `expect`, `panic!` denied by clippy lint)
-- Typed error enum (`TftError`) covering every failure surface
-- Roughly 500 unit tests across the workspace; CI runs `cargo fmt --check`, `cargo clippy -D warnings` and `cargo test` on every push
-- Game data baked into the binary at compile time - single file distribution
-- Model weights serialized as JSON to `~/.tft-synapse/model.json`
-- Patch hot-reload: drop `~/.tft-synapse/catalog.json` to override embedded catalog
-
----
-
-## What was shipped in v0.5.0
-
-- Champion pool tracker - real-time pool depletion for all 58 champions
-- Positioning advisor - hex position recommendations with frontline/carry/support roles
-- Stage awareness panel - level targets, upcoming events (augments/carousels/PvE), one-line priority action
-- Post-game review - per-decision breakdown after each game
-- Auto-update notifier - startup check against GitHub Releases API
-
-## What was shipped in v0.4.0
-
-- Economy advisor with streak detection and gold interest tracking
-- Carry identification - top 3 units to build toward 3-star
-- Item advisor - matches held items to best champions by trait
-- Opponent tracker - flags contested comps and pivot suggestions
-- Patch hot-reload - override embedded catalog via `~/.tft-synapse/catalog.json`
-
-## What was shipped in v0.3.0
-
-- Screen capture fallback when Live API is unavailable
-- Shop buy and reroll recommendations
-- Board composition analysis and trait coherence scoring
-- Overlay click-through toggle (F9)
-- CSV export for placement history and aggregate stats
-
-## Roadmap
-
-- **Full system tray** - minimize to tray with Show/Quit menu (stub in place)
-- **Augment tier list sync** - pull community tier list data to weight recommendations by current meta
-- **Multi-game trend analysis** - track which augments are winning for your playstyle over time
-- **Discord webhook** - post post-game stats to a Discord channel automatically
-- **3-cost/4-cost pool probability** - estimate odds of hitting a unit given known pool depletion
+MIT licensed, see [LICENSE](LICENSE). Not affiliated with or endorsed by Riot Games.

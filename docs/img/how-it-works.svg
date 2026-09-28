@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600" role="img" aria-labelledby="t d">
+<title id="t">How tft-synapse works</title>
+<desc id="d">Every half second tft-synapse asks the running TFT game for its state through Riot's local Live Client Data API at 127.0.0.1:2999. The API gives gold, level, HP, game time and the lobby's names, HP and levels. It does not give the board, bench, shop, items or augment choices, so those stay empty. The advisors turn the state into economy advice, a target level with the next augment, carousel and PvE rounds, and each lobby player's HP, shown in an always-on-top window.</desc>
+<style>
+  .h{font:700 24px -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#e8ecf1}
+  .s{font:400 16px -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#9aa5b1}
+  .b{font:700 18px -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#e8ecf1}
+  .t{font:400 16px -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#c9d1d9}
+  .m{font:400 15px ui-monospace,'Cascadia Mono',Consolas,Menlo,monospace;fill:#fbbf24}
+  .ok{font:700 15px -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#34d399}
+  .no{font:700 15px -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#f87171}
+  .dot{fill:#fbbf24}
+  @media (prefers-reduced-motion: reduce){ .dot{display:none} }
+</style>
+<rect width="1000" height="600" rx="16" fill="#0f1419"/>
+<text x="40" y="48" class="h">How tft-synapse works</text>
+<text x="40" y="76" class="s">Every 0.5 s: ask the game for its state, run the advisors, redraw the window.</text>
+
+<!-- 1. game -->
+<rect x="40" y="110" width="250" height="150" rx="12" fill="#161c24" stroke="#3a4452" stroke-width="1.5"/>
+<text x="60" y="142" class="b">1  Your TFT game</text>
+<text x="60" y="172" class="t">Riot's Live Client Data</text>
+<text x="60" y="194" class="t">API, on your own PC:</text>
+<text x="60" y="222" class="m">127.0.0.1:2999</text>
+<text x="60" y="246" class="s">no key, no account login</text>
+
+<!-- 2. state -->
+<rect x="340" y="110" width="300" height="300" rx="12" fill="#161c24" stroke="#60a5fa" stroke-width="1.5"/>
+<text x="360" y="142" class="b">2  What it can read</text>
+<text x="360" y="172" class="ok">READ</text>
+<text x="410" y="172" class="t">gold, level, HP</text>
+<text x="410" y="196" class="t">stage, estimated from</text>
+<text x="410" y="218" class="t">game time</text>
+<text x="410" y="242" class="t">lobby: names, HP, level</text>
+<line x1="360" y1="262" x2="620" y2="262" stroke="#3a4452"/>
+<text x="360" y="290" class="no">EMPTY</text>
+<text x="420" y="290" class="t">board, bench, shop,</text>
+<text x="420" y="312" class="t">items, augment choices</text>
+<text x="360" y="344" class="s">The API does not send them,</text>
+<text x="360" y="366" class="s">so the panels that need them</text>
+<text x="360" y="388" class="s">stay blank in a real game.</text>
+
+<!-- 3. window -->
+<rect x="690" y="110" width="270" height="300" rx="12" fill="#161c24" stroke="#34d399" stroke-width="1.5"/>
+<text x="710" y="142" class="b">3  The window shows</text>
+<text x="710" y="174" class="t">Economy: save, level up,</text>
+<text x="710" y="196" class="t">roll down, with the reason</text>
+<text x="710" y="230" class="t">Target level, next augment,</text>
+<text x="710" y="252" class="t">carousel and PvE rounds</text>
+<text x="710" y="286" class="t">Lobby: each player's HP</text>
+<text x="710" y="320" class="s">Always on top. F9 turns</text>
+<text x="710" y="342" class="s">click-through on and off.</text>
+<text x="710" y="376" class="s">Opacity slider in</text>
+<text x="710" y="398" class="s">Overlay Settings.</text>
+
+<!-- arrows -->
+<path id="p1" d="M290 185 L336 185" stroke="#9aa5b1" stroke-width="2" fill="none"/>
+<path d="M330 179 L338 185 L330 191 z" fill="#9aa5b1"/>
+<path id="p2" d="M640 185 L686 185" stroke="#9aa5b1" stroke-width="2" fill="none"/>
+<path d="M680 179 L688 185 L680 191 z" fill="#9aa5b1"/>
+<circle r="6" class="dot"><animateMotion dur="1s" repeatCount="indefinite" path="M290 185 L336 185"/></circle>
+<circle r="6" class="dot"><animateMotion dur="1s" begin="0.5s" repeatCount="indefinite" path="M640 185 L686 185"/></circle>
+
+<!-- fallback -->
+<rect x="40" y="440" width="920" height="130" rx="12" fill="#1a1712" stroke="#fbbf24" stroke-width="1.2"/>
+<text x="60" y="472" class="b">If no game is running when it starts</text>
+<text x="60" y="502" class="t">Windows: it reads HP, gold and round from screen pixels instead (a rough guess at 1080p) for the whole session.</text>
+<text x="60" y="526" class="t">macOS and Linux: it shows a built-in demo state. So start tft-synapse after your game has loaded.</text>
+<text x="60" y="554" class="s">Source: crates/tft-capture (auto_detect_reader, live_api.rs, screen_capture.rs) and crates/tft-advisor.</text>
+</svg>

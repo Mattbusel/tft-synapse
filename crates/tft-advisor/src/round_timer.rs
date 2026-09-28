@@ -199,21 +199,21 @@ impl RoundTimer {
         let augment_soon = events.iter().find(|e| e.event_type == EventType::Augment);
         if let Some(aug_event) = augment_soon {
             if aug_event.rounds_away == 0 {
-                return "Augment this round — pick carefully".to_string();
+                return "Augment this round: pick carefully".to_string();
             }
             if aug_event.rounds_away == 1 {
-                return "Augment next round — save gold".to_string();
+                return "Augment next round: save gold".to_string();
             }
         }
 
         // Level behind + low HP = roll down
         if is_level_behind && state.hp < 50 {
-            return "Roll down — you're behind on levels".to_string();
+            return "Roll down: you're behind on levels".to_string();
         }
 
         // Level behind but not critical
         if is_level_behind {
-            return "Buy XP — you're behind on level target".to_string();
+            return "Buy XP: you're behind on level target".to_string();
         }
 
         // Carousel soon
@@ -221,13 +221,13 @@ impl RoundTimer {
             .iter()
             .find(|e| e.event_type == EventType::Carousel && e.rounds_away <= 2);
         if carousel_soon.is_some() {
-            return "Prepare for carousel — position to win".to_string();
+            return "Prepare for carousel: position to win".to_string();
         }
 
         // Default: econ
         let augment_distant = events.iter().find(|e| e.event_type == EventType::Augment);
         if augment_distant.is_none_or(|e| e.rounds_away >= 3) {
-            return "Econ — save to 50g before next augment".to_string();
+            return "Econ: save to 50g before next augment".to_string();
         }
 
         "Hold and stabilize board".to_string()

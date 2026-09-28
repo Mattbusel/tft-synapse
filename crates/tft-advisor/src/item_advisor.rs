@@ -177,12 +177,12 @@ fn build_reason(
 ) -> String {
     if preferred_traits.is_empty() {
         format!(
-            "{} is a flexible item — placing on {} (highest cost carry)",
+            "{} is a flexible item: placing on {} (highest cost carry)",
             item_name, champ_name
         )
     } else {
         format!(
-            "{} suits {} — aligns with {:?} preferred traits: {}",
+            "{} suits {}: aligns with {:?} preferred traits: {}",
             item_name,
             champ_name,
             category,

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tft-synapse: free TFT economy helper for Windows</title>
+<meta name="description" content="Free Teamfight Tactics helper for Windows: an always-on-top window that reads gold, level and HP from your game and says when to save, level or roll.">
+<link rel="canonical" href="https://mattbusel.github.io/tft-synapse/">
+<meta name="color-scheme" content="light dark">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mattbusel.github.io/tft-synapse/">
+<meta property="og:title" content="tft-synapse: free TFT economy helper for Windows">
+<meta property="og:description" content="An always-on-top window that reads gold, level and HP from your TFT game and says when to save, level up or roll down.">
+<meta property="og:image" content="https://mattbusel.github.io/tft-synapse/img/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="tft-synapse: Teamfight Tactics economy and leveling helper for Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="tft-synapse: free TFT economy helper for Windows">
+<meta name="twitter:description" content="An always-on-top window that reads gold, level and HP from your TFT game and says when to save, level up or roll down.">
+<meta name="twitter:image" content="https://mattbusel.github.io/tft-synapse/img/social.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f1419'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23fbbf24' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%2334d399'/%3E%3C/svg%3E">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "tft-synapse",
+  "description": "Free Teamfight Tactics helper for Windows: an always-on-top window that reads gold, level and HP from the running game through Riot's local Live Client Data API and gives economy, level and stage advice.",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Windows 10, Windows 11",
+  "softwareVersion": "0.6.1",
+  "url": "https://mattbusel.github.io/tft-synapse/",
+  "downloadUrl": "https://github.com/Mattbusel/tft-synapse/releases/latest/download/tft-synapse-windows-x64.exe",
+  "codeRepository": "https://github.com/Mattbusel/tft-synapse",
+  "programmingLanguage": "Rust",
+  "license": "https://opensource.org/licenses/MIT",
+  "image": "https://mattbusel.github.io/tft-synapse/img/social.png",
+  "author": { "@type": "Person", "name": "Matthew Busel", "url": "https://mattbusel.github.io/" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #14181d; --muted: #56606b; --line: #dde2e8;
+    --gold: #a86b00; --green: #0f7a55; --red: #b42318; --btn: #14181d; --btn-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0b0e12; --card: #141a21; --ink: #e8ecf1; --muted: #9aa5b1; --line: #26303b;
+            --gold: #fbbf24; --green: #34d399; --red: #f87171; --btn: #fbbf24; --btn-ink: #14181d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 17px/1.6 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 18px 0; border-bottom: 1px solid var(--line); }
+  header .wrap { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .mark { font-weight: 700; color: var(--ink); text-decoration: none; }
+  nav a { color: var(--muted); margin-left: 16px; text-decoration: none; }
+  nav a:hover { color: var(--ink); }
+  .hero { padding-top: 56px; padding-bottom: 32px; }
+  h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.12; margin: 0 0 16px; letter-spacing: -0.01em; }
+  .lede { font-size: 19px; color: var(--muted); max-width: 720px; margin: 0 0 28px; }
+  .cta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .dl { display: inline-flex; align-items: center; min-height: 56px; padding: 0 28px; border-radius: 12px;
+        background: var(--btn); color: var(--btn-ink); font-weight: 700; font-size: 19px; text-decoration: none; }
+  .dl:hover { opacity: .92; }
+  .dl:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+  .small { font-size: 15px; color: var(--muted); }
+  .small a { color: inherit; }
+  .note { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--gold);
+          border-radius: 10px; padding: 14px 18px; margin: 28px 0 0; font-size: 16px; }
+  h2 { font-size: 26px; margin: 48px 0 12px; }
+  figure { margin: 0; }
+  figure img { width: 100%; height: auto; display: block; border-radius: 16px; }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  pre { background: #0f1419; color: #e8ecf1; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 14px/1.55 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 16px; }
+  .ok { color: var(--green); font-weight: 700; }
+  .no { color: var(--red); font-weight: 700; }
+  ol { padding-left: 22px; }
+  li { margin: 6px 0; }
+  code { font-family: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; font-size: .92em; }
+  footer { border-top: 1px solid var(--line); margin-top: 56px; padding: 24px 0 40px; color: var(--muted); font-size: 15px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="mark" href="./">tft-synapse</a>
+    <nav aria-label="Project links">
+      <a href="#how">How it works</a>
+      <a href="https://github.com/Mattbusel/tft-synapse">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <h1>A free TFT economy and leveling helper for Windows</h1>
+    <p class="lede">tft-synapse is a small always-on-top window for Teamfight Tactics. It reads your gold, level and HP from the running game and tells you when to save, level up or roll down, what level to aim for, and when the next augment, carousel and PvE round come.</p>
+    <div class="cta">
+      <a class="dl" href="https://github.com/Mattbusel/tft-synapse/releases/latest/download/tft-synapse-windows-x64.exe">Download for Windows (.exe)</a>
+      <span class="small">One file, no installer, MIT licensed.<br>macOS and Linux builds: <a href="https://github.com/Mattbusel/tft-synapse/releases/latest">Releases</a></span>
+    </div>
+    <p class="note"><strong>Early version.</strong> Riot's local game API does not send your board, shop, items or augment choices, so the economy, stage and lobby advice work in a real game, and the augment, shop, board and item panels stay empty for now.</p>
+  </section>
+
+  <section class="wrap" id="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <figure>
+      <a href="img/how-it-works.svg"><img src="img/how-it-works.svg" width="1000" height="600" alt="Diagram: every half second tft-synapse asks the running TFT game for its state through Riot's local Live Client Data API at 127.0.0.1:2999. It reads gold, level, HP, the stage estimated from game time, and the lobby's names, HP and levels. Board, bench, shop, items and augment choices are not in the API and stay empty. The window shows economy advice, the target level with the next augment, carousel and PvE rounds, and each lobby player's HP."></a>
+      <figcaption>No login, no API key: it only reads what the game serves on your own PC.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wrap" aria-labelledby="what-h">
+    <h2 id="what-h">What you get in a real game</h2>
+    <div class="grid">
+      <div class="card"><h3><span class="ok">Works</span> Economy</h3><p>Save, level up or roll down, with the reason: interest thresholds, low HP, gold at the cap.</p></div>
+      <div class="card"><h3><span class="ok">Works</span> Stage awareness</h3><p>Target level for the stage and the next augment, carousel and PvE rounds.</p></div>
+      <div class="card"><h3><span class="ok">Works</span> Lobby</h3><p>Every player's HP and a threat level.</p></div>
+      <div class="card"><h3><span class="no">Empty</span> Augments, shop, board, items</h3><p>The advisors exist in the code, but the game API does not send this data.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="ex-h">
+    <h2 id="ex-h">Example advice</h2>
+    <p class="small">Real output of the advisor code for three game states (<code>cargo run -p tft-synapse-advisor --example advise</code>):</p>
+<pre>Stage 3-2  gold 52  HP 64  level 6
+  Economy: LEVEL UP. Gold at interest cap (52); leveling up from 6 improves shop odds
+  Target level 6. Augment this round: pick carefully
+  In 3 round(s): PvE: Raptors
+
+Stage 4-5  gold 34  HP 22  level 7
+  Economy: ROLL DOWN. Low HP (22): roll to find upgrades urgently
+  Target level 8 (behind). Roll down: you're behind on levels
+  In 6 round(s): Stage 5 carousel</pre>
+  </section>
+
+  <section class="wrap" aria-labelledby="use-h">
+    <h2 id="use-h">Use it in 3 steps</h2>
+    <ol>
+      <li><strong>Start a TFT game</strong> and wait until you are in the match.</li>
+      <li><strong>Run <code>tft-synapse.exe</code>.</strong> Windows may say "unknown publisher" because it is unsigned: click More info, then Run anyway.</li>
+      <li><strong>Keep it beside or over the game.</strong> F9 lets clicks pass through; Alt+Tab back and press F9 again to undo. Opacity is under Overlay Settings.</li>
+    </ol>
+    <p class="small">Start it after the game has loaded: if no game answers at startup, it uses a rough screen-pixel reader for the whole session.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><a href="https://github.com/Mattbusel/tft-synapse">Source on GitHub</a> · <a href="https://github.com/Mattbusel/tft-synapse/blob/main/docs/REFERENCE.md">Reference</a> · <a href="https://crates.io/crates/tft-synapse">crates.io</a> · MIT license · by <a href="https://mattbusel.github.io/">Matthew Busel</a></p>
+    <p>Not affiliated with or endorsed by Riot Games.</p>
+  </div>
+</footer>
+</body>
+</html>

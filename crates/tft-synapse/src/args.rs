@@ -3,16 +3,24 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(
     name = "tft-synapse",
-    about = "AI-powered TFT advisor - real-time augment recommendations and auto-play",
+    about = "Teamfight Tactics helper: an always-on-top window with economy, level and stage advice read from your live game",
+    after_help = "Start it after your TFT game has loaded; it reads Riot's local Live Client Data API (127.0.0.1:2999).
+Press F9 in the window to switch click-through on or off.
+Model weights, CSV exports and an optional catalog.json live in ~/.tft-synapse/.
+
+Examples:
+  tft-synapse
+  tft-synapse --width 420 --height 720
+  tft-synapse --log-level debug",
     version
 )]
 pub struct Args {
-    /// Run as an always-on-top overlay (transparent window over TFT)
-    #[arg(long, default_value_t = false)]
+    /// Accepted for compatibility with old shortcuts; has no effect.
+    #[arg(long, default_value_t = false, hide = true)]
     pub overlay: bool,
 
-    /// Manual input mode (no screen capture or Live API)
-    #[arg(long, default_value_t = false)]
+    /// Accepted for compatibility with old shortcuts; has no effect.
+    #[arg(long, default_value_t = false, hide = true)]
     pub manual: bool,
 
     /// Path to the model weights file

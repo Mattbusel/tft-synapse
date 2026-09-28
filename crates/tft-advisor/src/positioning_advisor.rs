@@ -183,7 +183,7 @@ impl PositioningAdvisor {
                     let p = next_position(&mut frontline_positions, &mut front2_positions);
                     (
                         p,
-                        "Tank trait — stands at the front to absorb damage".to_string(),
+                        "Tank trait: stands at the front to absorb damage".to_string(),
                     )
                 }
                 PositionRole::Carry => {
@@ -191,7 +191,7 @@ impl PositioningAdvisor {
                     backline_count += 1;
                     (
                         carry_position.clone(),
-                        "Main carry — center-back for maximum peel".to_string(),
+                        "Main carry: center-back for maximum peel".to_string(),
                     )
                 }
                 PositionRole::Support => {
@@ -207,13 +207,13 @@ impl PositioningAdvisor {
                     };
                     (
                         p,
-                        "Support trait — flank position to protect and buff carries".to_string(),
+                        "Support trait: flank position to protect and buff carries".to_string(),
                     )
                 }
                 PositionRole::SecondaryCarry => {
                     backline_count += 1;
                     let p = next_position(&mut secondary_positions, &mut sec2_positions);
-                    (p, "Secondary damage dealer — backline position".to_string())
+                    (p, "Secondary damage dealer: backline position".to_string())
                 }
             };
 
@@ -227,9 +227,9 @@ impl PositioningAdvisor {
         }
 
         let layout_warning = if frontline_count == 0 {
-            Some("No frontline — your carry will die immediately".to_string())
+            Some("No frontline: your carry will die immediately".to_string())
         } else if backline_count > 0 && frontline_count >= backline_count.saturating_mul(2) {
-            Some("Very frontline-heavy — consider more carries".to_string())
+            Some("Very frontline-heavy: consider more carries".to_string())
         } else {
             None
         };
@@ -556,7 +556,7 @@ mod tests {
             .expect("advise failed");
         assert_eq!(
             layout.layout_warning.as_deref(),
-            Some("No frontline — your carry will die immediately")
+            Some("No frontline: your carry will die immediately")
         );
     }
 
@@ -582,7 +582,7 @@ mod tests {
         if layout.frontline_count >= layout.backline_count.saturating_mul(2) {
             assert_eq!(
                 layout.layout_warning.as_deref(),
-                Some("Very frontline-heavy — consider more carries")
+                Some("Very frontline-heavy: consider more carries")
             );
         }
     }

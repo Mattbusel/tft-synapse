@@ -85,7 +85,7 @@ impl OpponentTracker {
             format!("{} is {} (no contested traits)", name, threat_str)
         } else {
             format!(
-                "{} is {} — contested: {}",
+                "{} is {}, contested: {}",
                 name,
                 threat_str,
                 contested.join(", ")

@@ -53,7 +53,7 @@ pub fn explain_augment(id: AugmentId, score: f32, state: &GameState, catalog: &C
     if reasons.is_empty() {
         format!("{}: {} pick (score: {:.2})", name, score_label, score)
     } else {
-        format!("{}: {} — {}", name, score_label, reasons.join(", "))
+        format!("{}: {}, {}", name, score_label, reasons.join(", "))
     }
 }
 

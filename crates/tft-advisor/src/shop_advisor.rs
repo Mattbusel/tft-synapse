@@ -173,7 +173,7 @@ impl ShopAdvisor {
         if state.gold >= 50 {
             return RerollRecommendation {
                 should_reroll: true,
-                reason: "gold at cap (≥50) — safe to spend freely".to_string(),
+                reason: "gold at cap (≥50): safe to spend freely".to_string(),
                 gold_threshold: threshold,
             };
         }
