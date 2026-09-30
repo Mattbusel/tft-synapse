@@ -4,7 +4,7 @@
 
 For TFT players who want a second opinion on economy and leveling while they play. No login and no API key: it only reads the data the game itself serves on your own PC.
 
-[![Release](https://img.shields.io/github/v/release/Mattbusel/tft-synapse?style=flat)](https://github.com/Mattbusel/tft-synapse/releases/latest)
+[![Release](https://img.shields.io/github/v/release/Mattbusel/tft-synapse?style=flat)](https://gitlab.com/mattbusel/tft-synapse/-/releases)
 
 [![crates.io](https://img.shields.io/crates/v/tft-synapse.svg)](https://crates.io/crates/tft-synapse)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -13,13 +13,13 @@ For TFT players who want a second opinion on economy and leveling while they pla
 
 ## Download
 
-### [Download for Windows (.exe)](https://github.com/Mattbusel/tft-synapse/releases/latest/download/tft-synapse-windows-x64.exe)
+### [Download for Windows (.exe)](https://gitlab.com/mattbusel/tft-synapse/-/releases/permalink/latest/downloads/tft-synapse-windows-x64.exe)
 
 One file, no installer. Windows may say "unknown publisher" because it is unsigned: click **More info**, then **Run anyway**.
 
 | Also | |
 |---|---|
-| macOS (Apple Silicon or Intel), Linux | archives on the [Releases](https://github.com/Mattbusel/tft-synapse/releases/latest) page, with `SHA256SUMS.txt` |
+| macOS (Apple Silicon or Intel), Linux | archives on the [Releases](https://gitlab.com/mattbusel/tft-synapse/-/releases) page, with `SHA256SUMS.txt` |
 | With Rust installed | `cargo install tft-synapse` |
 
 ## How it works

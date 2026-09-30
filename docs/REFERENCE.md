@@ -84,7 +84,7 @@ To use your own data without rebuilding, put a `catalog.json` in `~/.tft-synapse
 Needs current stable Rust; on Windows the MSVC toolchain. Linux needs the usual egui/eframe system libraries.
 
 ```bash
-git clone https://github.com/Mattbusel/tft-synapse
+git clone https://gitlab.com/mattbusel/tft-synapse
 cd tft-synapse
 cargo build --release -p tft-synapse
 # Windows: target/release/tft-synapse.exe
