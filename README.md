@@ -5,7 +5,7 @@
 For TFT players who want a second opinion on economy and leveling while they play. No login and no API key: it only reads the data the game itself serves on your own PC.
 
 [![Release](https://img.shields.io/github/v/release/Mattbusel/tft-synapse?style=flat)](https://github.com/Mattbusel/tft-synapse/releases/latest)
-[![CI](https://github.com/Mattbusel/tft-synapse/actions/workflows/ci.yml/badge.svg)](https://github.com/Mattbusel/tft-synapse/actions/workflows/ci.yml)
+
 [![crates.io](https://img.shields.io/crates/v/tft-synapse.svg)](https://crates.io/crates/tft-synapse)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
