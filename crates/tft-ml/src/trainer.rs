@@ -169,7 +169,7 @@ mod tests {
     use super::*;
     use tft_types::Placement;
 
-    fn make_transition(features: Vec<f32>, chosen: u8, placement: u8) -> StateTransition {
+    fn make_transition(features: Vec<f32>, chosen: u16, placement: u8) -> StateTransition {
         StateTransition {
             features,
             augment_chosen: chosen,

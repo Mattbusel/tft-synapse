@@ -14,7 +14,7 @@ name = "tft_data"
 workspace = true
 
 [dependencies]
-tft-types = { package = "tft-synapse-types", version = "0.6.1", path = "../tft-types" }
+tft-types = { package = "tft-synapse-types", version = "0.7.0", path = "../tft-types" }
 serde = { workspace = true }
 serde_yaml = { workspace = true }
 serde_json = { workspace = true }

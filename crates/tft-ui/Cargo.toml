@@ -14,10 +14,10 @@ name = "tft_ui"
 workspace = true
 
 [dependencies]
-tft-types = { package = "tft-synapse-types", version = "0.6.1", path = "../tft-types" }
-tft-data = { package = "tft-synapse-data", version = "0.6.1", path = "../tft-data" }
-tft-advisor = { package = "tft-synapse-advisor", version = "0.6.1", path = "../tft-advisor" }
-tft-capture = { package = "tft-synapse-capture", version = "0.6.1", path = "../tft-capture" }
+tft-types = { package = "tft-synapse-types", version = "0.7.0", path = "../tft-types" }
+tft-data = { package = "tft-synapse-data", version = "0.7.0", path = "../tft-data" }
+tft-advisor = { package = "tft-synapse-advisor", version = "0.7.0", path = "../tft-advisor" }
+tft-capture = { package = "tft-synapse-capture", version = "0.7.0", path = "../tft-capture" }
 eframe = { workspace = true }
 egui = { workspace = true }
 serde = { workspace = true }

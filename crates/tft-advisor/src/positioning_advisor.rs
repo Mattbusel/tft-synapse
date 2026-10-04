@@ -112,7 +112,7 @@ impl PositioningAdvisor {
             let def = catalog
                 .champion_by_id(slot.champion_id)
                 .ok_or_else(|| TftError::ChampionNotFound(format!("{:?}", slot.champion_id)))?;
-            let role = classify_role(def.cost.as_u8(), &def.traits);
+            let role = classify_champion(def);
             classified.push((slot.champion_id, def.name.clone(), role));
         }
 
@@ -124,7 +124,7 @@ impl PositioningAdvisor {
                     .champion_by_id(slot.champion_id)
                     .ok_or_else(|| TftError::ChampionNotFound(format!("{:?}", slot.champion_id)))?;
                 let cost = def.cost.as_u8();
-                let role = classify_role(cost, &def.traits);
+                let role = classify_champion(def);
                 if role == PositionRole::Carry {
                     match best {
                         None => best = Some((cost, &def.name)),
@@ -263,6 +263,22 @@ const CARRY_TRAITS: &[&str] = &[
 /// Support traits — champions with these are classified Support.
 const SUPPORT_TRAITS: &[&str] = &["Scholar", "Enchanter", "Sage", "Strategist"];
 
+/// Classify a catalog champion: Riot's own role when the catalog has it
+/// (Tank and Fighter in front, Carry in the carry spot, Caster and
+/// Specialist in the back line, Reaper on the flank), otherwise the
+/// trait-name guess of [`classify_role`].
+pub fn classify_champion(def: &tft_types::ChampionDef) -> PositionRole {
+    match def.role.as_deref() {
+        Some(r) if r.ends_with("Tank") || r.ends_with("Fighter") => PositionRole::Frontline,
+        Some(r) if r.ends_with("Carry") => PositionRole::Carry,
+        Some(r) if r.ends_with("Caster") || r.ends_with("Specialist") => {
+            PositionRole::SecondaryCarry
+        }
+        Some(r) if r.ends_with("Reaper") => PositionRole::Support,
+        _ => classify_role(def.cost.as_u8(), &def.traits),
+    }
+}
+
 /// Classify a champion's role given its cost and trait list.
 ///
 /// Priority: Carry > Support > Frontline > default by cost.
@@ -336,14 +352,18 @@ mod tests {
         }
     }
 
-    fn champ_id(name: &str) -> ChampionId {
-        let cat = catalog();
-        let idx = cat
-            .champion_by_name
-            .get(name)
-            .copied()
-            .expect("champion not found in test");
-        ChampionId(idx as u8)
+    /// The `n`-th catalog champion classified as `role` (lowest cost first).
+    fn champ_with(role: PositionRole, n: usize) -> ChampionId {
+        let mut found: Vec<&tft_types::ChampionDef> = catalog()
+            .champions
+            .iter()
+            .filter(|c| classify_champion(c) == role)
+            .collect();
+        found.sort_by_key(|c| c.cost.as_u8());
+        found
+            .get(n)
+            .map(|c| c.id)
+            .expect("not enough champions with that role")
     }
 
     // ── classify_role ─────────────────────────────────────────────────────────
@@ -446,20 +466,21 @@ mod tests {
     fn test_advise_identifies_main_carry() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let jinx = champ_id("Jinx"); // Gunner, cost-3
+        let carry = champ_with(PositionRole::Carry, 0);
         let mut state = empty_state();
-        state.board.push(board_slot(jinx));
+        state.board.push(board_slot(carry));
         let layout = advisor
             .advise_positions(&state, cat)
             .expect("advise failed");
-        assert_eq!(layout.carry_champion.as_deref(), Some("Jinx"));
+        let name = &cat.champion_by_id(carry).expect("carry").name;
+        assert_eq!(layout.carry_champion.as_deref(), Some(name.as_str()));
     }
 
     #[test]
     fn test_advise_frontline_assigned_row_1() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let vi = champ_id("Vi"); // Bruiser = Frontline
+        let vi = champ_with(PositionRole::Frontline, 0);
         let mut state = empty_state();
         state.board.push(board_slot(vi));
         let layout = advisor
@@ -477,7 +498,7 @@ mod tests {
     fn test_advise_carry_assigned_row_4_col_4() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let jinx = champ_id("Jinx"); // Gunner
+        let jinx = champ_with(PositionRole::Carry, 0);
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         let layout = advisor
@@ -496,7 +517,7 @@ mod tests {
     fn test_advise_support_assigned_flank_col() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let janna = champ_id("Janna"); // Scholar = Support
+        let janna = champ_with(PositionRole::Support, 0);
         let mut state = empty_state();
         state.board.push(board_slot(janna));
         let layout = advisor
@@ -518,8 +539,8 @@ mod tests {
     fn test_advise_frontline_count_correct() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let vi = champ_id("Vi"); // Frontline
-        let thresh = champ_id("Thresh"); // Guardian = Frontline
+        let vi = champ_with(PositionRole::Frontline, 0);
+        let thresh = champ_with(PositionRole::Frontline, 1);
         let mut state = empty_state();
         state.board.push(board_slot(vi));
         state.board.push(board_slot(thresh));
@@ -533,8 +554,8 @@ mod tests {
     fn test_advise_backline_count_correct() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let jinx = champ_id("Jinx"); // Carry
-        let lux = champ_id("Lux"); // Arcanist = Carry
+        let jinx = champ_with(PositionRole::Carry, 0);
+        let lux = champ_with(PositionRole::Carry, 1);
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         state.board.push(board_slot(lux));
@@ -548,7 +569,7 @@ mod tests {
     fn test_advise_warning_no_frontline() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let jinx = champ_id("Jinx"); // Carry only
+        let jinx = champ_with(PositionRole::Carry, 0);
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         let layout = advisor
@@ -565,10 +586,10 @@ mod tests {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
         // 4 frontline, 1 carry (backline) → 4 >= 1*2 → warning
-        let vi = champ_id("Vi");
-        let thresh = champ_id("Thresh");
-        let poppy = champ_id("Poppy");
-        let jinx = champ_id("Jinx");
+        let vi = champ_with(PositionRole::Frontline, 0);
+        let thresh = champ_with(PositionRole::Frontline, 1);
+        let poppy = champ_with(PositionRole::Frontline, 2);
+        let jinx = champ_with(PositionRole::Carry, 0);
         let mut state = empty_state();
         // Vi, Thresh, Poppy = frontline; Jinx = carry
         state.board.push(board_slot(vi));
@@ -592,10 +613,10 @@ mod tests {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
         // 2 frontline, 2 carries
-        let vi = champ_id("Vi");
-        let thresh = champ_id("Thresh");
-        let jinx = champ_id("Jinx");
-        let ashe = champ_id("Ashe"); // Sniper = Carry
+        let vi = champ_with(PositionRole::Frontline, 0);
+        let thresh = champ_with(PositionRole::Frontline, 1);
+        let jinx = champ_with(PositionRole::Carry, 0);
+        let ashe = champ_with(PositionRole::Carry, 2);
         let mut state = empty_state();
         state.board.push(board_slot(vi));
         state.board.push(board_slot(thresh));
@@ -615,9 +636,9 @@ mod tests {
     fn test_advise_positions_count_matches_board() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let jinx = champ_id("Jinx");
-        let vi = champ_id("Vi");
-        let janna = champ_id("Janna");
+        let jinx = champ_with(PositionRole::Carry, 0);
+        let vi = champ_with(PositionRole::Frontline, 0);
+        let janna = champ_with(PositionRole::Support, 0);
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         state.board.push(board_slot(vi));
@@ -632,7 +653,7 @@ mod tests {
     fn test_advise_reason_not_empty() {
         let cat = catalog();
         let advisor = PositioningAdvisor::new();
-        let jinx = champ_id("Jinx");
+        let jinx = champ_with(PositionRole::Carry, 0);
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         let layout = advisor

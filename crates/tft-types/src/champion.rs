@@ -55,6 +55,10 @@ pub struct ChampionDef {
     pub name: String,
     pub cost: Cost,
     pub traits: Vec<String>,
+    /// Riot's role for the unit (`ADTank`, `APCaster`, `ADCarry`, ...), from
+    /// CommunityDragon; `None` in hand-written catalogs.
+    #[serde(default)]
+    pub role: Option<String>,
 }
 
 #[cfg(test)]
@@ -99,6 +103,7 @@ mod tests {
             name: "Jinx".to_string(),
             cost: Cost::Three,
             traits: vec!["Gunner".to_string()],
+            role: None,
         };
         let json = serde_json::to_string(&def).expect("serialize failed in test");
         let back: ChampionDef = serde_json::from_str(&json).expect("deserialize failed in test");

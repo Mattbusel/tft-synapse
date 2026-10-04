@@ -79,9 +79,9 @@ mod tests {
         let cat = catalog();
         let state = GameState::default();
         let result = explain_augment(AugmentId(0), 0.8, &state, &cat);
-        // AugmentId(0) = "Blue Battery"
+        let name = &cat.augment_by_id(AugmentId(0)).expect("augment 0").name;
         assert!(
-            result.contains("Blue Battery"),
+            result.contains(name.as_str()),
             "expected name in: {}",
             result
         );
@@ -91,7 +91,7 @@ mod tests {
     fn test_explain_augment_unknown_id_graceful() {
         let cat = catalog();
         let state = GameState::default();
-        let result = explain_augment(AugmentId(200), 0.5, &state, &cat);
+        let result = explain_augment(AugmentId(u16::MAX), 0.5, &state, &cat);
         assert!(result.contains("Unknown"));
     }
 
@@ -100,12 +100,15 @@ mod tests {
         let cat = catalog();
         let mut state = GameState::default();
         state.hp = 20;
-        // Last Stand has comeback tag
-        let last_stand_id = cat
-            .augment_id_by_name("Last Stand")
-            .expect("Last Stand not found in test");
-        let result = explain_augment(last_stand_id, 0.9, &state, &cat);
-        assert!(!result.is_empty());
+        // Any augment tagged "comeback" (from its description) explains itself at low HP.
+        if let Some(def) = cat
+            .augments
+            .iter()
+            .find(|a| a.tags.iter().any(|t| t == "comeback"))
+        {
+            let result = explain_augment(def.id, 0.9, &state, &cat);
+            assert!(result.contains("comeback"), "{result}");
+        }
     }
 
     #[test]

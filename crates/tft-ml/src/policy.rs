@@ -22,7 +22,7 @@ pub struct AugmentPolicy {
     n_augments: usize,
     games_trained: u32,
     model_path: PathBuf,
-    pending_transitions: Vec<(Vec<f32>, u8)>,
+    pending_transitions: Vec<(Vec<f32>, u16)>,
 }
 
 impl AugmentPolicy {
@@ -54,6 +54,25 @@ impl AugmentPolicy {
         let mut policy = Self::new(catalog, model_path.clone())?;
         if model_path.exists() {
             match load_model(&model_path) {
+                // A model saved for a different catalog (an older set, or the
+                // placeholder data before 0.7) has the wrong shape: keep a copy
+                // and start fresh instead of failing on every recommendation.
+                Ok((net, games))
+                    if net.layer1.in_size != policy.net.layer1.in_size
+                        || net.layer_out.out_size != policy.net.layer_out.out_size =>
+                {
+                    let backup = model_path.with_extension("old.json");
+                    let _ = std::fs::rename(&model_path, &backup);
+                    info!(
+                        "Saved model ({} games) was trained for a different set ({} inputs, {} augments; now {} and {}); moved to {:?}, starting fresh",
+                        games,
+                        net.layer1.in_size,
+                        net.layer_out.out_size,
+                        policy.net.layer1.in_size,
+                        policy.net.layer_out.out_size,
+                        backup
+                    );
+                }
                 Ok((net, games)) => {
                     policy.net = net;
                     policy.games_trained = games;
@@ -156,6 +175,22 @@ impl AugmentPolicy {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn stale_model_from_another_set_is_set_aside() {
+        let catalog = Catalog::global().expect("catalog");
+        let path = std::env::temp_dir().join("tft_policy_stale_model.json");
+        let _ = std::fs::remove_file(path.with_extension("old.json"));
+        // A model shaped for a 10-input, 3-augment catalog.
+        crate::persistence::save_model(&crate::model::ShallowNet::new(10, 4, 4, 3), 7, &path)
+            .expect("save");
+        let policy = AugmentPolicy::load_or_init(catalog, path.clone()).expect("init");
+        assert_eq!(policy.games_trained, 0, "started fresh");
+        assert!(
+            !path.exists() && path.with_extension("old.json").exists(),
+            "old model kept as a backup"
+        );
+    }
+
     use super::*;
     use std::env::temp_dir;
     use tft_types::{AugmentId, ChampionId, ChampionSlot, GameState, RoundInfo, StarLevel};

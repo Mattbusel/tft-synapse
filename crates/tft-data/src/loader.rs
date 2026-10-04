@@ -31,6 +31,8 @@ struct RawChampion {
     name: String,
     cost: u8,
     traits: Vec<String>,
+    #[serde(default)]
+    role: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -71,7 +73,7 @@ pub fn parse_augments(yaml: &str) -> Result<Vec<AugmentDef>, TftError> {
         .into_iter()
         .enumerate()
         .map(|(i, a)| AugmentDef {
-            id: AugmentId(i as u8),
+            id: AugmentId(i as u16),
             name: a.name,
             tier: a.tier.as_deref().and_then(parse_tier),
             base_score: a.base_score,
@@ -93,6 +95,7 @@ pub fn parse_champions(yaml: &str) -> Result<Vec<ChampionDef>, TftError> {
             name: c.name,
             cost: Cost::from_u8(c.cost).unwrap_or(Cost::One),
             traits: c.traits,
+            role: c.role,
         })
         .collect();
     Ok(defs)

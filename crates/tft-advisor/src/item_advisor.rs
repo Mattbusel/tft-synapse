@@ -420,12 +420,14 @@ mod tests {
             name: "Low".to_string(),
             cost: Cost::One,
             traits: vec![],
+            role: None,
         };
         let champ_high = ChampionDef {
             id: ChampionId(1),
             name: "High".to_string(),
             cost: Cost::Five,
             traits: vec![],
+            role: None,
         };
         let s_low = score_champion_for_item(&champ_low, &[], &ItemCategory::Utility);
         let s_high = score_champion_for_item(&champ_high, &[], &ItemCategory::Utility);

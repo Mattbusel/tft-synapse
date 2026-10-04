@@ -75,7 +75,18 @@ tft-synapse [OPTIONS]
 
 ## Game data
 
-The catalog is compiled into the binary from `crates/tft-data/data/*.yaml`: 20 champions, 17 traits, 20 augments and 20 items, labelled patch 14.23 (items 14.1). It is a small sample, not a full current set.
+The catalog is compiled into the binary from `crates/tft-data/data/*.yaml`, generated from [CommunityDragon](https://communitydragon.org)'s export of the live game data: the current set (Set 17, patch 16.19) with 63 champions (cost, traits and Riot's role), 42 traits with their breakpoints, the 10 basic components and 39 completed items, and 273 augments with their rarity. Positioning uses each champion's role (Tank and Fighter in front, Carry and Caster behind).
+
+CommunityDragon has no win rates, so augments carry no power tier and a neutral score; their tags (`econ`, `AP`, `tank`, `scaling`, `comeback`, ...) come from words in each augment's own description.
+
+To refresh the data for a new set or patch:
+
+```text
+curl -L https://raw.communitydragon.org/latest/cdragon/tft/en_us.json -o en_us.json
+cargo run -p tft-synapse-data --example import_cdragon -- en_us.json crates/tft-data/data
+```
+
+The importer picks the newest standard set (special modes are skipped). If a saved `model.json` was trained for a different catalog, the app moves it to `model.old.json` and starts a fresh model instead of failing.
 
 To use your own data without rebuilding, put a `catalog.json` in `~/.tft-synapse/`. It is read once at startup (restart to pick up changes). The schema is `CatalogJson` in `crates/tft-data/src/catalog.rs`.
 

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Unique identifier for an augment, indexed into the catalog.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct AugmentId(pub u8);
+pub struct AugmentId(pub u16);
 
 /// Augment power tier.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

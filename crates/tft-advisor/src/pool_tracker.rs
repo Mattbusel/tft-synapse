@@ -177,15 +177,14 @@ mod tests {
         GameState::default()
     }
 
-    /// Look up a champion id by name from the global catalog.
-    fn champ_id(name: &str) -> ChampionId {
-        let cat = catalog();
-        let idx = cat
-            .champion_by_name
-            .get(name)
-            .copied()
-            .expect("champion not found in test catalog");
-        ChampionId(idx as u8)
+    /// The first catalog champion of the given cost.
+    fn champ_of_cost(cost: u8) -> ChampionId {
+        catalog()
+            .champions
+            .iter()
+            .find(|c| c.cost.as_u8() == cost)
+            .map(|c| c.id)
+            .expect("no champion of that cost in the catalog")
     }
 
     fn board_slot(id: ChampionId) -> ChampionSlot {
@@ -307,7 +306,7 @@ mod tests {
     fn test_track_board_copies_counted() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jinx = champ_id("Jinx");
+        let jinx = champ_of_cost(3);
         let mut state = empty_state();
         state.board.push(board_slot(jinx));
         state.board.push(board_slot(jinx));
@@ -324,7 +323,7 @@ mod tests {
     fn test_track_bench_copies_counted() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jinx = champ_id("Jinx");
+        let jinx = champ_of_cost(3);
         let mut state = empty_state();
         state.bench.push(Some(board_slot(jinx)));
         state.bench.push(Some(board_slot(jinx)));
@@ -341,7 +340,7 @@ mod tests {
     fn test_track_shop_copies_counted() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let caitlyn = champ_id("Caitlyn");
+        let caitlyn = champ_of_cost(1);
         let mut state = empty_state();
         state.shop.push(shop_slot_for(caitlyn, false));
         state.shop.push(shop_slot_for(caitlyn, false));
@@ -357,7 +356,7 @@ mod tests {
     fn test_track_sold_shop_slot_excluded() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let caitlyn = champ_id("Caitlyn");
+        let caitlyn = champ_of_cost(1);
         let mut state = empty_state();
         state.shop.push(shop_slot_for(caitlyn, false)); // visible
         state.shop.push(shop_slot_for(caitlyn, true)); // sold — NOT counted
@@ -390,7 +389,7 @@ mod tests {
     fn test_track_opponent_board_copies_counted() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jayce = champ_id("Jayce"); // cost-5, pool=10
+        let jayce = champ_of_cost(5); // cost-5, pool=10
         let mut state = empty_state();
         state.opponents.push(OpponentSnapshot {
             player_name: "Bob".to_string(),
@@ -412,7 +411,7 @@ mod tests {
     fn test_track_all_sources_combined() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jayce = champ_id("Jayce"); // cost-5, pool=10
+        let jayce = champ_of_cost(5); // cost-5, pool=10
         let mut state = empty_state();
         state.board.push(board_slot(jayce)); // +1
         state.bench.push(Some(board_slot(jayce))); // +1
@@ -437,7 +436,7 @@ mod tests {
     fn test_track_saturating_sub_no_overflow() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jayce = champ_id("Jayce"); // pool=10
+        let jayce = champ_of_cost(5); // pool=10
         let mut state = empty_state();
         // Put 15 copies visible (more than pool_size of 10)
         state.opponents.push(OpponentSnapshot {
@@ -477,7 +476,7 @@ mod tests {
     fn test_track_status_exhausted_when_all_visible() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jayce = champ_id("Jayce"); // pool=10
+        let jayce = champ_of_cost(5); // pool=10
         let mut state = empty_state();
         state.opponents.push(OpponentSnapshot {
             player_name: "P1".to_string(),
@@ -498,7 +497,7 @@ mod tests {
     fn test_track_status_critical_at_two_remaining() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jayce = champ_id("Jayce"); // pool=10
+        let jayce = champ_of_cost(5); // pool=10
         let mut state = empty_state();
         state.opponents.push(OpponentSnapshot {
             player_name: "P1".to_string(),
@@ -519,7 +518,7 @@ mod tests {
     fn test_track_status_low_at_5_remaining() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jayce = champ_id("Jayce"); // pool=10
+        let jayce = champ_of_cost(5); // pool=10
         let mut state = empty_state();
         state.opponents.push(OpponentSnapshot {
             player_name: "P1".to_string(),
@@ -555,7 +554,7 @@ mod tests {
     fn test_track_multiple_opponents_all_counted() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let caitlyn = champ_id("Caitlyn"); // cost-1, pool=29
+        let caitlyn = champ_of_cost(1); // cost-1, pool=29
         let mut state = empty_state();
         for i in 0..3 {
             state.opponents.push(OpponentSnapshot {
@@ -592,7 +591,7 @@ mod tests {
     fn test_track_cost1_pool_size_29() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let caitlyn = champ_id("Caitlyn"); // cost-1
+        let caitlyn = champ_of_cost(1); // cost-1
         let entries = tracker.track(&empty_state(), cat).expect("track failed");
         let e = entries
             .iter()
@@ -606,7 +605,7 @@ mod tests {
     fn test_track_cost5_pool_size_10() {
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let jayce = champ_id("Jayce"); // cost-5
+        let jayce = champ_of_cost(5); // cost-5
         let entries = tracker.track(&empty_state(), cat).expect("track failed");
         let e = entries
             .iter()
@@ -631,8 +630,8 @@ mod tests {
         // Ensure counts for one champion don't bleed into another.
         let cat = catalog();
         let tracker = PoolTracker::new();
-        let caitlyn = champ_id("Caitlyn");
-        let jinx = champ_id("Jinx");
+        let caitlyn = champ_of_cost(1);
+        let jinx = champ_of_cost(3);
         let mut state = empty_state();
         state.board.push(board_slot(caitlyn));
         state.board.push(board_slot(caitlyn));

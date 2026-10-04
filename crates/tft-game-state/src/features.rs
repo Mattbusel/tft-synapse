@@ -13,7 +13,6 @@ use crate::normalizer::*;
 use std::collections::HashMap;
 use tft_data::Catalog;
 use tft_types::{GameState, TftError};
-use tracing::warn;
 
 /// Upper bound on the feature vector dimension used for allocation hints.
 /// This is a maximum capacity — the actual dimension is computed per-extractor via `dim()`.
@@ -42,32 +41,12 @@ impl FeatureExtractor {
         let raw_augments = catalog.augment_count();
         let raw_traits = catalog.traits.len();
 
-        if raw_champions > 64 {
-            warn!(
-                "Catalog has {} champions; feature extractor silently caps at 64. \
-                 Champions beyond index 63 will be ignored.",
-                raw_champions
-            );
-        }
-        if raw_augments > 64 {
-            warn!(
-                "Catalog has {} augments; feature extractor silently caps at 64. \
-                 Augments beyond index 63 will be ignored.",
-                raw_augments
-            );
-        }
-        if raw_traits > 32 {
-            warn!(
-                "Catalog has {} traits; feature extractor silently caps at 32. \
-                 Traits beyond index 31 will be ignored.",
-                raw_traits
-            );
-        }
-
         Self {
-            n_champions: raw_champions.min(64),
-            n_augments: raw_augments.min(64),
-            n_traits: raw_traits.min(32),
+            // Sized to the whole catalog: the real Set 17 data has 273 augments
+            // and 42 traits, so the old caps (64 and 32) hid most of the set.
+            n_champions: raw_champions,
+            n_augments: raw_augments,
+            n_traits: raw_traits,
             trait_index,
         }
     }

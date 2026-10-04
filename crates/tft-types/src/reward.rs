@@ -25,7 +25,7 @@ impl Placement {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StateTransition {
     pub features: Vec<f32>,
-    pub augment_chosen: u8,
+    pub augment_chosen: u16,
     pub placement: Option<Placement>,
 }
 

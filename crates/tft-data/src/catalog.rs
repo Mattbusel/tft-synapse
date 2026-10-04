@@ -167,7 +167,7 @@ impl Catalog {
     }
 
     pub fn augment_id_by_name(&self, name: &str) -> Option<AugmentId> {
-        self.augment_by_name.get(name).map(|&i| AugmentId(i as u8))
+        self.augment_by_name.get(name).map(|&i| AugmentId(i as u16))
     }
 
     pub fn item_count(&self) -> usize {
@@ -210,7 +210,7 @@ mod tests {
     fn test_catalog_augment_by_id_roundtrip() {
         let catalog = Catalog::from_embedded().expect("catalog init failed in test");
         for i in 0..catalog.augment_count() {
-            let id = AugmentId(i as u8);
+            let id = AugmentId(i as u16);
             let def = catalog.augment_by_id(id);
             assert!(def.is_some(), "augment {} not found by id", i);
         }
@@ -219,8 +219,14 @@ mod tests {
     #[test]
     fn test_catalog_augment_by_name_lookup() {
         let catalog = Catalog::from_embedded().expect("catalog init failed in test");
-        let id = catalog.augment_id_by_name("Blue Battery");
-        assert!(id.is_some(), "Blue Battery not found in catalog");
+        for def in &catalog.augments {
+            assert_eq!(
+                catalog.augment_id_by_name(&def.name),
+                Some(def.id),
+                "{}",
+                def.name
+            );
+        }
     }
 
     #[test]
@@ -268,8 +274,16 @@ mod tests {
     #[test]
     fn test_catalog_trait_by_name_lookup() {
         let catalog = Catalog::from_embedded().expect("catalog init failed in test");
-        assert!(catalog.trait_by_name.contains_key("Arcanist"));
-        assert!(catalog.trait_by_name.contains_key("Gunner"));
+        // Every trait a champion carries is in the trait table.
+        for champ in &catalog.champions {
+            for t in &champ.traits {
+                assert!(
+                    catalog.trait_by_name.contains_key(t),
+                    "{} has unknown trait {t}",
+                    champ.name
+                );
+            }
+        }
     }
 
     #[test]

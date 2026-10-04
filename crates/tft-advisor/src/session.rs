@@ -80,7 +80,7 @@ impl GameSession {
     }
 
     /// Report chosen augment indices for ML training.
-    pub fn chosen_augment_indices(&self) -> Vec<u8> {
+    pub fn chosen_augment_indices(&self) -> Vec<u16> {
         self.decisions.iter().map(|d| d.chosen.0).collect()
     }
 
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn test_record_multiple_decisions() {
         let mut session = GameSession::new(1);
-        for i in 0u8..3 {
+        for i in 0u16..3 {
             let state = make_state(2 + i as u8, 1);
             session.record_decision(&state, vec![AugmentId(i)], AugmentId(i), 0.7);
         }
@@ -177,7 +177,7 @@ mod tests {
         let state = make_state(3, 2);
         session.record_decision(&state, vec![AugmentId(5), AugmentId(6)], AugmentId(5), 0.9);
         let indices = session.chosen_augment_indices();
-        assert_eq!(indices, vec![5u8]);
+        assert_eq!(indices, vec![5u16]);
     }
 
     #[test]
@@ -287,8 +287,8 @@ mod tests {
             let state = make_state(2 + i, 1);
             session.record_decision(
                 &state,
-                vec![AugmentId(i)],
-                AugmentId(i),
+                vec![AugmentId(u16::from(i))],
+                AugmentId(u16::from(i)),
                 0.5 + i as f32 * 0.1,
             );
         }

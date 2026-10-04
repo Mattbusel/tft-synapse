@@ -3669,7 +3669,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "clap",
  "eframe",
@@ -3688,7 +3688,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse-advisor"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -3704,7 +3704,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse-capture"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "reqwest",
  "serde",
@@ -3718,7 +3718,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse-data"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "dirs-next",
  "serde",
@@ -3731,7 +3731,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse-game-state"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "proptest",
  "serde",
@@ -3742,7 +3742,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse-ml"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "proptest",
  "serde",
@@ -3756,7 +3756,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse-types"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -3765,7 +3765,7 @@ dependencies = [
 
 [[package]]
 name = "tft-synapse-ui"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "dirs-next",
  "eframe",

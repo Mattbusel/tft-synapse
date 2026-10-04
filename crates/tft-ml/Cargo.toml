@@ -14,9 +14,9 @@ name = "tft_ml"
 workspace = true
 
 [dependencies]
-tft-types = { package = "tft-synapse-types", version = "0.6.1", path = "../tft-types" }
-tft-data = { package = "tft-synapse-data", version = "0.6.1", path = "../tft-data" }
-tft-game-state = { package = "tft-synapse-game-state", version = "0.6.1", path = "../tft-game-state" }
+tft-types = { package = "tft-synapse-types", version = "0.7.0", path = "../tft-types" }
+tft-data = { package = "tft-synapse-data", version = "0.7.0", path = "../tft-data" }
+tft-game-state = { package = "tft-synapse-game-state", version = "0.7.0", path = "../tft-game-state" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

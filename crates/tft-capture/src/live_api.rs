@@ -188,7 +188,7 @@ impl RiotLiveApiReader {
                 arr.iter()
                     .filter_map(|a| a.as_str())
                     .enumerate()
-                    .map(|(i, _)| tft_types::AugmentId(i as u8))
+                    .map(|(i, _)| tft_types::AugmentId(i as u16))
                     .collect()
             })
             .unwrap_or_default();
