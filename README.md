@@ -1,5 +1,13 @@
 # tft-synapse
 
+<!-- outcome-block -->
+**Better TFT economy calls while you play: a small always-on-top window reads your gold, level and HP and tells you when to save, level up or roll.**
+
+**Why this over the alternatives:** No login, no API key and nothing sent anywhere: it only reads the data the game itself serves on your own PC.
+
+**Guarantee:** if it doesn't do what this README says, [open an issue](https://github.com/Mattbusel/tft-synapse/issues) and I'll fix it.
+<!-- outcome-block -->
+
 **A free Teamfight Tactics (TFT) helper for Windows: a small always-on-top window that reads your gold, level and HP from the running game and tells you when to save, level up or roll down, what level to aim for, and when the next augment, carousel and PvE round come.**
 
 For TFT players who want a second opinion on economy and leveling while they play. No login and no API key: it only reads the data the game itself serves on your own PC.
