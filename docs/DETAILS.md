@@ -1,0 +1,76 @@
+# tft-synapse: details
+
+Everything cut from the main [README](../README.md).
+
+<!-- outcome-block -->
+**Better TFT economy calls while you play. A small window on top of the game reads your gold, level and HP and tells you when to save, level up or roll.**
+
+No login, no API key, nothing sent anywhere. It only reads what the game already serves on your PC.
+
+If it doesn't do what this README says, [open an issue](https://github.com/Mattbusel/tft-synapse/issues) and I'll fix it.
+<!-- outcome-block -->
+
+**A free Teamfight Tactics (TFT) helper for Windows.** Reads your gold, level and HP from the running game. Tells you when to save, level up or roll down, what level to aim for, and when the next augment, carousel and PvE round come.
+
+> **Early version, read this first.** Riot's local game API does not send your board, shop, items or augment choices. In a real game, the economy, stage and lobby advice work. The augment, shop, board, item, carry and positioning panels stay empty. The augment learning model is in the code, but the app does not record placements yet. Details in [docs/REFERENCE.md](REFERENCE.md).
+
+## Download
+
+### [Download for Windows (.exe)](https://gitlab.com/mattbusel/tft-synapse/-/releases/permalink/latest/downloads/tft-synapse-windows-x64.exe)
+
+One file, no installer. It is unsigned, so Windows may say "unknown publisher". Click **More info**, then **Run anyway**.
+
+| Also | |
+|---|---|
+| macOS (Apple Silicon or Intel), Linux | archives on the [Releases](https://gitlab.com/mattbusel/tft-synapse/-/releases) page, with `SHA256SUMS.txt` |
+| With Rust installed | `cargo install tft-synapse` |
+
+## How it works
+
+<img alt="Diagram: every half second tft-synapse asks the running TFT game for its state through Riot's local Live Client Data API at 127.0.0.1:2999. It reads gold, level, HP, the stage estimated from game time, and the lobby's names, HP and levels. Board, bench, shop, items and augment choices are not in the API and stay empty. The window shows economy advice, the target level with the next augment, carousel and PvE rounds, and each lobby player's HP. If no game is running at startup, Windows falls back to reading HP, gold and round from screen pixels, and macOS or Linux show a demo state." src="img/how-it-works.svg" width="100%">
+
+## Examples
+
+Advice from the real advisor code (`cargo run -p tft-synapse-advisor --example advise`) for three game states, using only what the game API sends:
+
+```text
+Stage 2-1  gold 18  HP 92  level 4
+  Economy: SAVE GOLD. Save 2 more gold to reach the 20 interest threshold
+  Target level 5 (behind). Augment this round: pick carefully
+  In 0 round(s): Stage 2 carousel
+  In 0 round(s): First augment choice
+  In 0 round(s): Target level 4 by stage 2-1
+
+Stage 3-2  gold 52  HP 64  level 6
+  Economy: LEVEL UP. Gold at interest cap (52); leveling up from 6 improves shop odds
+  Target level 6. Augment this round: pick carefully
+  In 0 round(s): Second augment choice
+  In 3 round(s): PvE: Raptors
+  In 9 round(s): Stage 4 carousel
+
+Stage 4-5  gold 34  HP 22  level 7
+  Economy: ROLL DOWN. Low HP (22): roll to find upgrades urgently
+  Target level 8 (behind). Roll down: you're behind on levels
+  In 0 round(s): PvE: Dragon / Baron
+  In 0 round(s): Target level 8 by stage 4-5
+  In 6 round(s): Stage 5 carousel
+```
+
+The window shows these lines in its Economy and Stage Awareness panels, plus the lobby's HP.
+
+## Use it in 3 steps
+
+1. **Start a TFT game** and wait until you are in the match.
+2. **Run `tft-synapse.exe`.** The status bar shows the stage, HP, gold and level it read.
+3. **Keep it beside or over the game.** Press **F9** in the window so clicks pass through to the game. Alt+Tab back and press F9 again to undo. Opacity is under Overlay Settings.
+
+Start it after the game loads. If no game answers at startup, it uses a rough screen-pixel reader for the whole session. `tft-synapse --help` lists the options (window size, log level, model path).
+
+## Documentation
+
+| Read this | For |
+|---|---|
+| [docs/REFERENCE.md](REFERENCE.md) | Detection chain, what each panel needs, the learning model, command line, game data and `catalog.json`, building from source, workspace layout, history |
+| [CHANGELOG.md](../CHANGELOG.md) | Release notes |
+
+MIT licensed, see [LICENSE](../LICENSE). Not affiliated with or endorsed by Riot Games.
