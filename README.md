@@ -1,29 +1,27 @@
 # tft-synapse
 
 <!-- outcome-block -->
-**Better TFT economy calls while you play: a small always-on-top window reads your gold, level and HP and tells you when to save, level up or roll.**
+**Better TFT economy calls while you play. A small window on top of the game reads your gold, level and HP and tells you when to save, level up or roll.**
 
-**Why this over the alternatives:** No login, no API key and nothing sent anywhere: it only reads the data the game itself serves on your own PC.
+No login, no API key, nothing sent anywhere. It only reads what the game already serves on your PC.
 
-**Guarantee:** if it doesn't do what this README says, [open an issue](https://github.com/Mattbusel/tft-synapse/issues) and I'll fix it.
+If it doesn't do what this README says, [open an issue](https://github.com/Mattbusel/tft-synapse/issues) and I'll fix it.
 <!-- outcome-block -->
 
-**A free Teamfight Tactics (TFT) helper for Windows: a small always-on-top window that reads your gold, level and HP from the running game and tells you when to save, level up or roll down, what level to aim for, and when the next augment, carousel and PvE round come.**
-
-For TFT players who want a second opinion on economy and leveling while they play. No login and no API key: it only reads the data the game itself serves on your own PC.
+**A free Teamfight Tactics (TFT) helper for Windows.** Reads your gold, level and HP from the running game. Tells you when to save, level up or roll down, what level to aim for, and when the next augment, carousel and PvE round come.
 
 [![Release](https://img.shields.io/github/v/release/Mattbusel/tft-synapse?style=flat)](https://gitlab.com/mattbusel/tft-synapse/-/releases)
 
 [![crates.io](https://img.shields.io/crates/v/tft-synapse.svg)](https://crates.io/crates/tft-synapse)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> **Early version, read this first.** Riot's local game API does not send your board, shop, items or augment choices. So in a real game the economy, stage and lobby advice work, and the augment, shop, board, item, carry and positioning panels stay empty. The learning model for augments is in the code but the app does not record placements yet. Details in [docs/REFERENCE.md](docs/REFERENCE.md).
+> **Early version, read this first.** Riot's local game API does not send your board, shop, items or augment choices. In a real game, the economy, stage and lobby advice work. The augment, shop, board, item, carry and positioning panels stay empty. The augment learning model is in the code, but the app does not record placements yet. Details in [docs/REFERENCE.md](docs/REFERENCE.md).
 
 ## Download
 
 ### [Download for Windows (.exe)](https://gitlab.com/mattbusel/tft-synapse/-/releases/permalink/latest/downloads/tft-synapse-windows-x64.exe)
 
-One file, no installer. Windows may say "unknown publisher" because it is unsigned: click **More info**, then **Run anyway**.
+One file, no installer. It is unsigned, so Windows may say "unknown publisher". Click **More info**, then **Run anyway**.
 
 | Also | |
 |---|---|
@@ -36,7 +34,7 @@ One file, no installer. Windows may say "unknown publisher" because it is unsign
 
 ## Examples
 
-The advice it gives, from the real advisor code (`cargo run -p tft-synapse-advisor --example advise`), for three game states that carry only what the game API provides:
+Advice from the real advisor code (`cargo run -p tft-synapse-advisor --example advise`) for three game states, using only what the game API sends:
 
 ```text
 Stage 2-1  gold 18  HP 92  level 4
@@ -61,15 +59,15 @@ Stage 4-5  gold 34  HP 22  level 7
   In 6 round(s): Stage 5 carousel
 ```
 
-The window shows the same lines in its Economy and Stage Awareness panels, plus the lobby's HP.
+The window shows these lines in its Economy and Stage Awareness panels, plus the lobby's HP.
 
 ## Use it in 3 steps
 
 1. **Start a TFT game** and wait until you are in the match.
 2. **Run `tft-synapse.exe`.** The status bar shows the stage, HP, gold and level it read.
-3. **Keep it beside or over the game.** Press **F9** in the window to let clicks pass through to the game; Alt+Tab back and press F9 again to turn that off. Opacity is under Overlay Settings.
+3. **Keep it beside or over the game.** Press **F9** in the window so clicks pass through to the game. Alt+Tab back and press F9 again to undo. Opacity is under Overlay Settings.
 
-Start it after the game has loaded: if no game answers at startup, it uses a rough screen-pixel reader for the whole session instead. `tft-synapse --help` lists the options (window size, log level, model path).
+Start it after the game loads. If no game answers at startup, it uses a rough screen-pixel reader for the whole session. `tft-synapse --help` lists the options (window size, log level, model path).
 
 ## Documentation
 
