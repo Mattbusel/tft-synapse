@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1 (2026-11-16)
+
+- The window opens on machines without OpenGL (virtual machines, remote desktop
+  sessions, old drivers). When the OpenGL renderer cannot start, the app now starts
+  again on wgpu (Direct3D 12 on Windows, with the WARP software fallback) instead of
+  exiting with "UI error".
+
 ## 0.7.0 (2026-10-04)
 
 - **Real game data.** The built-in catalog was a hand-made sample: 20 champions with
